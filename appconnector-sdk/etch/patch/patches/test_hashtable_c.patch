@@ -1,0 +1,14 @@
+diff --git a/etch/trunk/binding-c/runtime/c/src/test/common/test_hashtable.c b/etch/trunk/binding-c/runtime/c/src/test/common/test_hashtable.c
+index 10aecbb..1488c2f 100644
+--- test_hashtable.c
++++ test_hashtable.c
+@@ -906,7 +906,8 @@ static void test_jenkins_stats(void)
+ //    CU_ASSERT_EQUAL(hash, jenkins_hash(eht->realtable, "key", 3, 0, 0, 0));
+ //    /* hash should be different if input arguments are different */
+ //    CU_ASSERT_NOT_EQUAL(hash, jenkins_hash(eht->realtable, "kee", 3, 0, 0, 0));
+-etch_object_destroy(eht);
++// OBIGO(PATCH)
++//    etch_object_destroy(eht);
+ //}
+ 
+ 

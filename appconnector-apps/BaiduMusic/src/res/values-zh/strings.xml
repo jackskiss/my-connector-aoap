@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="version_name">STD.CHN.V0.994&#8211;130926</string>
+    
+    <string name="favorite">我的收藏</string>
+    <string name="theme">每月专题</string>
+    <string name="radio">收音机</string>
+    <string name="popular">流行歌曲</string>
+    <string name="billboard">榜单歌曲</string>
+    <string name="newsong">新歌</string>
+    <string name="search">搜索</string>
+    <string name="driving">驾驶模式</string>
+
+    <string name="app_name">百度音乐</string>
+    <string name="action_settings">设置</string>
+    
+    <string name="help">帮助</string>
+    <string name="notice">注意</string>
+    <string name="version">版本</string>
+    <string name="exit">退出</string>
+    <string name="delete">删除</string>
+    <string name="delete_all">删除所有</string>
+    <string name="top">移动到列表顶端</string>
+    
+    <string name="dialog_warning">警告!</string>
+    <string name="dialog_exit">退出百度音乐？</string>
+    <string name="mainmenu_exit">退出百度音乐？</string>
+    
+    <string name="search_hint">歌曲, 歌手, 专辑</string>
+    
+    <string name="loading">加载中&#8230;</string>
+    <string name="searching">搜索中&#8230;</string>
+    
+    <string name="btn_ok">确定</string>
+    <string name="btn_cancel">取消</string>
+    <string name="btn_yes">是</string>
+    <string name="btn_no">否</string>
+    
+    <string name="warning">警告</string>
+    <string name="information">信息</string>
+    <string name="error">错误</string>
+     
+    <string name="delete_one_warning">删除这个？</string>
+    <string name="delete_all_warning">删除所有？</string>
+    
+    <string name="added_to_favorite">已加入收藏</string>
+    <string name="please_add_to_favorite">请将这个加入收藏</string>
+    <string name="please_try_again">请过会再试</string>
+    
+    <string name="edit_warning">无法修改列表</string>
+    <string name="no_result">无搜索结果</string>
+    <string name="delete_last_and_add">为了添加新歌曲到收藏列表，是否将列表排序最后面的这首\'%s\'歌曲删除掉？</string>
+    <string name="input_keyword">请输入关键字</string>
+    
+    <string name="warning_network_connection_fail">连接中断</string>
+    
+    <string name="warning_network_connection1">找不到可用的网络，请检查网络状态。</string>
+    <string name="warning_network_connection2">网络没有连接，是否退出应用？</string>
+    <string name="warning_3gnetwork_connection">连接3g网络，你需要付流量费。是否继续?</string>
+    
+    <string name="warning_driving_search">开车时，不能使用搜索功能。</string>
+    
+    <string name="notice_content">本应用程序所包含的内容由百度音乐提供，其运行受您所处网络状态或政策的影响，可能存在暂时中断或终止的现象，敬请谅解。服务相关内容请参见服务协议。</string>
+	<string name="alarm_network_disconnected">找不到可用的网络，请检查网络状态.</string>
+	<string name="warning_no_response_from_server">服务器没有响应，请稍后再试</string>
+    <string name="warning_media_format_is_not_supported">媒体格式无效，请重新选择音乐</string>
+    <string name="warning_wait_time_is_expired">媒体格式无效，请重新选择音乐</string>
+	
+	<!-- Bottom Message -->
+    <string name="greeting">欢迎！请稍后设置歌曲收藏夹</string>
+    <string name="selectmusic">没有选中的音乐，请选择音乐专辑.</string>
+
+</resources>

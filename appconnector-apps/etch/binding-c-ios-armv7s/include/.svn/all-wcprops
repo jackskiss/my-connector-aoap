@@ -1,0 +1,443 @@
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include
+END
+etch_remote.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_remote.h
+END
+etch_threadpool.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_threadpool.h
+END
+etch_url.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_url.h
+END
+etch_threadpool_apr.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_threadpool_apr.h
+END
+etch_tcp_connection.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_tcp_connection.h
+END
+etch_object.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_object.h
+END
+etch_default_value_factory.h
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_default_value_factory.h
+END
+etch_plain_mailbox_manager.h
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_plain_mailbox_manager.h
+END
+etch_session_packet.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_session_packet.h
+END
+etch_sourceint.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_sourceint.h
+END
+etch_tcp_server.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_tcp_server.h
+END
+etch_map.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_map.h
+END
+etch_plain_mailbox.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_plain_mailbox.h
+END
+etch_log.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_log.h
+END
+etch_hash.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_hash.h
+END
+etch_binary_tdi.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_binary_tdi.h
+END
+etch_transport_data.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_transport_data.h
+END
+etch_nativearray.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_nativearray.h
+END
+etch_mailbox_manager.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_mailbox_manager.h
+END
+etch_encoding.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_encoding.h
+END
+etch_session_message.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_session_message.h
+END
+etch_session_listener.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_session_listener.h
+END
+etch_binary_tdo.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_binary_tdo.h
+END
+etch_simpletimer.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_simpletimer.h
+END
+etch_mailbox.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_mailbox.h
+END
+etch_transport.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_transport.h
+END
+etch_tagdata_out.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_tagdata_out.h
+END
+etch_connection.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_connection.h
+END
+etchinternal_single_linked_list.h
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etchinternal_single_linked_list.h
+END
+etch_transport_message.h
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_transport_message.h
+END
+etch_linked_list.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_linked_list.h
+END
+etch_mutex.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_mutex.h
+END
+etch_thread.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_thread.h
+END
+etch_transportint.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_transportint.h
+END
+etch_warn.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_warn.h
+END
+etch_msgutl.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_msgutl.h
+END
+etch_general.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_general.h
+END
+etch.h
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch.h
+END
+etch_message.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_message.h
+END
+etch_svcobj_masks.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_svcobj_masks.h
+END
+etch_validator.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_validator.h
+END
+etch_flexbuffer.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_flexbuffer.h
+END
+etch_thread2.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_thread2.h
+END
+etch_id_name_map.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_id_name_map.h
+END
+etch_objecttypes.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_objecttypes.h
+END
+etch_sessionint.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_sessionint.h
+END
+etch_exception.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_exception.h
+END
+etch_packetizer.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_packetizer.h
+END
+etch_cache.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_cache.h
+END
+etch_wait.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_wait.h
+END
+etch_config.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_config.h
+END
+etch_serializer.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_serializer.h
+END
+etch_arraylist.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_arraylist.h
+END
+etch_stub.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_stub.h
+END
+etch_mem.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_mem.h
+END
+etch_tdformat.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_tdformat.h
+END
+etch_arrayval.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_arrayval.h
+END
+etch_type.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_type.h
+END
+etch_field.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_field.h
+END
+etch_tagged_data.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_tagged_data.h
+END
+etch_queue.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_queue.h
+END
+etch_errno.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_errno.h
+END
+etch_queue_apr.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_queue_apr.h
+END
+etch_structval.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_structval.h
+END
+etch_collection.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_collection.h
+END
+etch_id_name.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_id_name.h
+END
+etch_value_factory.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_value_factory.h
+END
+etch_messagizer.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_messagizer.h
+END
+etch_resources.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_resources.h
+END
+etch_tagdata_inp.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_tagdata_inp.h
+END
+etch_session_data.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_session_data.h
+END
+etch_transport_packet.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_transport_packet.h
+END
+etch_runtime.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/asf/!svn/ver/1440293/etch/trunk/binding-c/runtime/c/include/etch_runtime.h
+END

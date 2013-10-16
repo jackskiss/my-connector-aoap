@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<item android:id="@android:id/secondaryProgress">
+		<clip>
+			<shape>
+				<gradient android:startColor="#8000AADD"
+					android:centerColor="#8000AADD" android:centerY="0.75"
+					android:endColor="#8000AADD" android:angle="270" />
+			</shape>
+		</clip>
+	</item>
+	
+	<item android:id="@android:id/progress" android:drawable="@drawable/bar_time_line" />
+
+	
+
+
+</layer-list>

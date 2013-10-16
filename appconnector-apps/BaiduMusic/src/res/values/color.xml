@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="list_selected">#ffffff</color>
+    <color name="list_background">#000000</color>
+    <color name="search_input">#1e2022</color>
+    <color name="search_list">#969696</color>
+    <color name="thumb_shaper">#ffffff</color>
+    <color name="transparent_background">#60000000</color>
+</resources>

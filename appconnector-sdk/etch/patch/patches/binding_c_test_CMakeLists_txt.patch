@@ -1,0 +1,14 @@
+diff --git a/etch/trunk/binding-c/runtime/c/src/test/CMakeLists.txt b/etch/trunk/binding-c/runtime/c/src/test/CMakeLists.txt
+index f3c87fa..188b49b 100644
+--- CMakeLists.txt
++++ CMakeLists.txt
+@@ -64,6 +64,9 @@ add_executable(etch-c-test
+     transport/test_mailboxmgr.c
+ )
+ 
++# OBIGO(PATCH) : fix link error for apr_iconv_{open|close}
++target_link_libraries(etch-c-test "${APR-ICONV_LIBRARY}")
++
+ target_link_libraries (etch-c-test etch-c)
+ 
+ IF (UNIX)

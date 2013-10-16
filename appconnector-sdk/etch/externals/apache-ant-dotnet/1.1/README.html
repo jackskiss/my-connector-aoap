@@ -1,0 +1,59 @@
+<body>
+<h1>Changes in 1.1</h1>
+<h2>Changes that Could Break Older Environments:</h2>
+<ul>
+<li>
+        The C# compiler uses gmcs on Mono by default now.
+      <a href="http://issues.apache.org/bugzilla/show_bug.cgi?id=">BugZilla Issue </a>
+</li>
+</ul>
+<h2>Fixed Bugs:</h2>
+<ul>
+<li>
+        The include and exclude arguments to NUnit were broken (they
+        had a leading ",").
+      <a href="http://issues.apache.org/bugzilla/show_bug.cgi?id=50611">BugZilla Issue 50611</a>
+</li>
+<li>
+        The /noconfig argument must be used outside of a response file.
+      <a href="http://issues.apache.org/bugzilla/show_bug.cgi?id=34992">BugZilla Issue 34992</a>
+</li>
+<li>
+        CSC of .NET 3.5 doesn't support the /incremental argument
+        anymore, only set /incremental+, but never /incremental-.
+      <a href="http://issues.apache.org/bugzilla/show_bug.cgi?id=47789">BugZilla Issue 47789</a>
+</li>
+<li>
+        The compilation tasks failed if the source files resided in a
+        directory with spaces in its full path and a response file was
+        used.
+      <a href="http://issues.apache.org/bugzilla/show_bug.cgi?id=41387">BugZilla Issue 41387</a>
+</li>
+</ul>
+<h2>Other Changes:</h2>
+<ul>
+<li>
+        The wix task has an option to run lit.exe rather than
+        light.exe now.
+      <a href="http://issues.apache.org/bugzilla/show_bug.cgi?id=47254">BugZilla Issue 47254</a>
+</li>
+<li>
+        The C# compiler uses gmcs on Mono by default now.
+      <a href="http://issues.apache.org/bugzilla/show_bug.cgi?id=">BugZilla Issue </a>
+</li>
+<li>
+        A new F# compiler task has been added.
+      <a href="http://issues.apache.org/bugzilla/show_bug.cgi?id=">BugZilla Issue </a>
+</li>
+<li>
+        A new tallow task has been added to ease creation of WiX built
+        installers.
+      <a href="http://issues.apache.org/bugzilla/show_bug.cgi?id=47078">BugZilla Issue 47078</a>
+</li>
+<li>
+        The wix task has new nested elements that allow users to send
+        addtional command line arguments to candle and light.
+      <a href="http://issues.apache.org/bugzilla/show_bug.cgi?id=46968">BugZilla Issue 46968</a>
+</li>
+</ul>
+</body>

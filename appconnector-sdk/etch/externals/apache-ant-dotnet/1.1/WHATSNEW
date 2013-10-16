@@ -1,0 +1,91 @@
+Changes in 1.1
+==============================================
+
+Changes that Could Break Older Environments:
+--------------------------------------------
+
+
+        The C# compiler uses gmcs on Mono by default now.
+      
+        BugZilla Issue 
+
+Fixed Bugs:
+-----------
+
+
+        The include and exclude arguments to NUnit were broken (they
+        had a leading ",").
+      
+        BugZilla Issue 50611
+
+
+        The /noconfig argument must be used outside of a response file.
+      
+        BugZilla Issue 34992
+
+
+        CSC of .NET 3.5 doesn't support the /incremental argument
+        anymore, only set /incremental+, but never /incremental-.
+      
+        BugZilla Issue 47789
+
+
+        The compilation tasks failed if the source files resided in a
+        directory with spaces in its full path and a response file was
+        used.
+      
+        BugZilla Issue 41387
+
+Other Changes:
+--------------
+
+
+        The wix task has an option to run lit.exe rather than
+        light.exe now.
+      
+        BugZilla Issue 47254
+
+
+        A new F# compiler task has been added.
+      
+        BugZilla Issue 
+
+
+        A new tallow task has been added to ease creation of WiX built
+        installers.
+      
+        BugZilla Issue 47078
+
+
+        The wix task has new nested elements that allow users to send
+        addtional command line arguments to candle and light.
+      
+        BugZilla Issue 46968
+
+
+Changes in 1.0
+==============================================
+
+Changes that Could Break Older Environments:
+--------------------------------------------
+
+Fixed Bugs:
+-----------
+
+Other Changes:
+--------------
+
+
+        The NAnt and MSBuild task have new attributes failonerror and
+        errorproperty that allow users to fine-tune Ant's behaviour if
+        either of both signals an error.
+      
+        BugZilla Issue 40553
+
+
+        The NUnit task has a new attribute errorproperty that allows
+        users to set a property if NUnit signals a test failure.
+      
+        BugZilla Issue 40552
+
+

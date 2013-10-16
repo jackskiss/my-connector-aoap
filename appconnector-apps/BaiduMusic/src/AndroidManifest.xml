@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.obigo.baidumusic.standard"
+    android:versionCode="1"
+    android:versionName="0.0.1" >
+
+    <uses-sdk
+        android:minSdkVersion="10"
+        android:targetSdkVersion="10" />
+    
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RESTART_PACKAGES" />
+    <uses-permission android:name="com.hkmc.permission.BACKGROUND_RUNNING" />
+    <uses-permission android:name="com.hkmc.permission.SOUND_PERMITTED" />
+    <uses-permission android:name="com.hkmc.permission.AUTOMOTIVE_REGULATION" />
+    <uses-permission android:name="com.hkmc.permission.BROADCASTRECEIVER" />
+    <uses-permission android:name="com.hkmc.permission.AUTOMOTIVE_INFO" />
+    
+    <application
+        android:name="MusicApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@android:style/Theme.NoTitleBar" >
+        <activity
+            android:name="com.obigo.baidumusic.standard.MainActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+                <!-- <category android:name="android.intent.category.REGULATION" />  -->
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.obigo.baidumusic.standard.playlist.FavoriteListActivity">
+        </activity>
+        <activity
+            android:name="com.obigo.baidumusic.standard.playlist.TopListActivity">
+        </activity>
+        <activity
+            android:name="com.obigo.baidumusic.standard.playlist.ThemeListActivity">
+        </activity>
+        <activity
+            android:name="com.obigo.baidumusic.standard.playlist.RadioListActivity">
+        </activity>
+        <activity
+            android:name="com.obigo.baidumusic.standard.playlist.RadioListActivityWL">
+        </activity>
+        <activity
+            android:name="com.obigo.baidumusic.standard.search.SearchActivity">
+        </activity>
+        <activity
+            android:name="com.obigo.baidumusic.standard.search.SearchListActivity">
+        </activity>
+        <service android:name="com.obigo.baidumusic.standard.player.PlayerService">
+            <intent-filter>
+                <action android:name="com.obigo.baidumusic.standard.PLAYER_SERVICE" />
+            </intent-filter>
+        </service>
+        
+        <receiver android:name="com.obigo.baidumusic.standard.ConnReceiver">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+                <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+        
+        <uses-library android:name="com.windriver"/>
+        <uses-library android:name="com.infobank"/>
+            
+    </application>
+
+</manifest>

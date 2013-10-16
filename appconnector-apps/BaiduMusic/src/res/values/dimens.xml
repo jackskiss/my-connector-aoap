@@ -1,0 +1,5 @@
+<resources>
+    <!-- Album art size. -->
+    <dimen name="thumb_size">150dip</dimen><!-- Mcdon Tang set listItem image size. -->
+    <dimen name="ItemIcon_size">72dip</dimen>
+</resources>

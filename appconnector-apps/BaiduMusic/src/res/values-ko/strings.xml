@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="version_name">STD.CHN.V0.994&#8211;130926</string>
+    
+    <string name="favorite">즐겨찾기</string>
+    <string name="theme">이달의 테마</string>
+    <string name="radio">라디오</string>
+    <string name="popular">인기음악</string>
+    <string name="billboard">빌보드</string>
+    <string name="newsong">신곡</string>
+    <string name="search">검색</string>
+    <string name="driving">주행모드</string>
+
+    <string name="app_name">바이두 뮤직</string>
+    <string name="action_settings">Settings</string>
+    
+    <string name="help">도움말</string>
+    <string name="notice">사용자고지</string>
+    <string name="version">버전정보</string>
+    <string name="exit">종료</string>
+    <string name="delete">삭제</string>
+    <string name="delete_all">모두삭제</string>
+    <string name="top">최상위 이동</string>
+    
+    <string name="dialog_warning">Warning!</string>
+    <string name="dialog_exit">바이두 뮤직을 종료하시겠습니까?</string>
+    <string name="mainmenu_exit">바이두 뮤직을 종료하시겠습니까?</string>
+    
+    <string name="search_hint">노래, 가수, 앨범</string>
+    
+    <string name="loading">로딩중&#8230;</string>
+    <string name="searching">검색중&#8230;</string>
+    
+    <string name="btn_ok">확인</string>
+    <string name="btn_cancel">취소</string>
+    <string name="btn_yes">예</string>
+    <string name="btn_no">아니오</string>
+
+    <string name="warning">경고</string>
+    <string name="information">정보</string>
+    <string name="error">에러</string>
+    
+    <string name="delete_one_warning">이 음악을 삭제하시겠습니까?</string>
+    <string name="delete_all_warning">리스트의 모든 음악을 삭제하시겠습니까?</string>
+    
+    <string name="added_to_favorite">즐겨찾기에 추가하였습니다</string>
+    <string name="please_add_to_favorite">즐겨찾기 목록을 추가해 주세요</string>
+    <string name="please_try_again">잠시 후에 다시 시도해 주세요</string>
+    
+    <string name="edit_warning">음악 재생 중에는 편집할 수 없습니다</string>
+    <string name="no_result">검색결과가 없습니다</string>
+    <string name="delete_last_and_add">리스트 최하단의 \'%s\' 곡을 삭제하고, 이 음악을 추가하시겠습니까?</string>
+    <string name="input_keyword">검색어를 입력하세요</string>
+    
+    <!-- Alarm Message -->
+    <string name="warning_network_connection_fail">연결이 끊어졌습니다.</string>
+    
+    <string name="warning_network_connection1">네트워크 연결이 끊어졌습니다. 네트워크 상태를 확인해 주십시오.</string>
+    <string name="warning_network_connection2">네트워크가 연결되지 않았습니다. 어플리케이션을 종료하시겠습니까?</string>
+    <string name="warning_3gnetwork_connection">3G로 이용시 데이터 요금이 부과될 수 있습니다. 계속 진행하시겠습니까?</string>
+
+    <string name="warning_driving_search">주행 중에는 검색기능을 사용할 수 없습니다.</string>
+    
+    <string name="notice_content">본 어플리케이션 내용은 바이두 뮤직에서 제공합니다.이동통신망 환경 또는 정책의 변화에 따라 음악이 끊기거나 제공되지 않을수 있으므로 이에 양해바랍니다. 서비스 관련내용은 서비스 이용약관을 참조하십시오.</string>
+    <string name="warning_no_response_from_server">서버가 응답하지 않습니다. 잠시 후에 다시 시도해 주세요.</string>
+    <string name="warning_media_format_is_not_supported">재생할 수 없는 미디어 포맷입니다. 다른 음악을 선택해 주세요.</string>
+    <string name="warning_wait_time_is_expired">응답대기시간을 초과하였습니다. 잠시 후에 다시 시도해 주세요.</string>
+    
+    <!-- Bottom Message -->
+    <string name="greeting">환영합니다. 즐겨찾기 설정중입니다. 잠시만 기다려주세요.</string>
+    <string name="selectmusic">선택된 음악이 없습니다. 음악 카테고리를 선택하세요.</string>
+
+</resources>

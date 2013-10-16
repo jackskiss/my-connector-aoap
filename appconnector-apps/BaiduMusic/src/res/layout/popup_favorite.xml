@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+    
+    <Button
+        android:id="@+id/search"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="20dp"
+        android:background="@drawable/selector_menu"
+        android:text="@string/search"
+        android:textColor="#ffffff"
+        android:textSize="24sp" />
+    
+    <Button
+        android:id="@+id/delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="20dp"
+        android:background="@drawable/selector_menu"
+        android:text="@string/delete"
+        android:textColor="#ffffff"
+        android:textSize="24sp" />
+
+    <Button
+        android:id="@+id/delete_all"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="20dp"
+        android:background="@drawable/selector_menu"
+        android:text="@string/delete_all"
+        android:textColor="#ffffff"
+        android:textSize="24sp" />
+    
+    <Button
+        android:id="@+id/top"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="20dp"
+        android:background="@drawable/selector_menu"
+        android:text="@string/top"
+        android:textColor="#ffffff"
+        android:textSize="24sp" />
+
+</LinearLayout>

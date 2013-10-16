@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <Button
+        android:id="@+id/search"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/selector_menu"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="20dp"
+        android:text="@string/search"
+        android:textColor="#ffffff"
+        android:textSize="24sp" />
+
+    <Button
+        android:id="@+id/notice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/selector_menu"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="20dp"
+        android:text="@string/notice"
+        android:textColor="#ffffff"
+        android:textSize="24sp" />
+
+    <Button
+        android:id="@+id/version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/selector_menu"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="20dp"
+        android:text="@string/version"
+        android:textColor="#ffffff"
+        android:textSize="24sp" />
+
+    <Button
+        android:id="@+id/exit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/selector_menu"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="20dp"
+        android:text="@string/exit"
+        android:textColor="#ffffff"
+        android:textSize="24sp" />
+
+    <Button
+        android:id="@+id/connectWL"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/selector_menu"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="20dp"
+        android:text="@string/connectWL"
+        android:textColor="#ffffff"
+        android:textSize="24sp" />
+
+    <Button
+        android:id="@+id/disconnectWL"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/selector_menu"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="20dp"
+        android:text="@string/disconnectWL"
+        android:textColor="#ffffff"
+        android:textSize="24sp" />
+
+</LinearLayout>

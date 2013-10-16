@@ -1,0 +1,92 @@
+diff --git a/etch/trunk/binding-c/runtime/c/src/main/common/etch_encoding.c b/etch/trunk/binding-c/runtime/c/src/main/common/etch_encoding.c
+index dcf8fbb..937d75b 100644
+--- etch_encoding.c
++++ etch_encoding.c
+@@ -20,7 +20,19 @@
+  * etch_encoding.c -- character encoding
+  */
+ 
++// OBIGO(PATCH)
++#ifdef __APPLE__
++#include <TargetConditionals.h>
++#endif
++
++// OBIGO(PATCH)
++#if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
++#include <iconv.h>
++typedef iconv_t apr_iconv_t;
++#else
+ #include <apr_iconv.h>
++#endif
++
+ #include "etch_encoding.h"
+ #include "etch_log.h"
+ #include "etch_mem.h"
+@@ -36,6 +48,39 @@ static const unsigned char CODEPAGE_TABLE_SIZE = 6;
+ 
+ static apr_iconv_t* codepage_table = NULL;
+ 
++// OBIGO(PATCH)
++#if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
++apr_status_t apr_iconv_open(const char *to_charset,
++            const char *from_charset, apr_pool_t *ctx, apr_iconv_t *res)
++{
++
++    *res = iconv_open(to_charset, from_charset);
++    if (*res == (apr_iconv_t *) -1) {
++        ETCH_ASSERT(0);
++        return apr_get_os_error();
++    }
++    return APR_SUCCESS;
++}
++
++apr_status_t apr_iconv(apr_iconv_t cd, const char **inbuf,
++            apr_size_t *inbytesleft, char **outbuf,
++            apr_size_t *outbytesleft, apr_size_t *result)
++{
++    *result = iconv(cd , inbuf, inbytesleft, outbuf, outbytesleft);
++    if (*result == (apr_size_t) -1)
++        return apr_get_os_error();
++    return APR_SUCCESS;
++}
++
++apr_status_t apr_iconv_close(apr_iconv_t cd, apr_pool_t *ctx)
++{
++    int status;
++    if (iconv_close(cd))
++        return apr_get_os_error();
++    return APR_SUCCESS;
++}
++#endif
++
+ etch_status_t etch_encoding_initialize()
+ {
+     size_t s       = CODEPAGE_TABLE_SIZE * CODEPAGE_TABLE_SIZE * sizeof(apr_iconv_t);
+@@ -64,6 +109,19 @@ etch_status_t etch_encoding_shutdown()
+ static char* etch_encoding_get_encoding(unsigned char encoding)
+ {
+     switch (encoding) {
++// OBIGO(PATCH)
++#if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE        
++    case ETCH_ENCODING_ASCII:
++      return "ISO-8859-1";
++    case ETCH_ENCODING_UTF8:
++      return "UTF-8";
++    case ETCH_ENCODING_UCS2:
++      return "UCS-2-INTERNAL,";
++    case ETCH_ENCODING_UCS4:
++      return "UCS-4-INTERNAL";
++    case ETCH_ENCODING_UTF16:
++      return "UTF-16";
++#else
+     case ETCH_ENCODING_ASCII:
+       return "iso-8859-1";
+     case ETCH_ENCODING_UTF8:
+@@ -74,6 +132,7 @@ static char* etch_encoding_get_encoding(unsigned char encoding)
+       return "ucs4-internal";
+     case ETCH_ENCODING_UTF16:
+       return "utf-16";
++#endif
+     default:
+       ETCH_LOG(LOG_CATEGORY, ETCH_LOG_ERROR, "unsupported src-encoding %d\n", encoding);
+       ETCH_ASSERT(!"encoding not supported");

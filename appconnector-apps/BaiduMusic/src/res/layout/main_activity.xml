@@ -1,0 +1,167 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity" >
+
+    <RelativeLayout
+        android:id="@+id/header"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_title" >
+
+        <ImageView
+            android:id="@+id/baidu_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:paddingLeft="364dp"
+            android:paddingTop="10dp"
+            android:singleLine="true"
+            android:src="@drawable/logo_main"
+            android:contentDescription="@string/app_name" />
+
+        <Button
+            android:id="@+id/back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="704dp"
+            android:background="@drawable/selector_btn_back" />
+
+        <com.obigo.baidumusic.standard.view.MenuButton
+            android:id="@+id/menu_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="600dp" />
+    </RelativeLayout>
+
+    <TableLayout
+        android:id="@+id/content"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_main"
+        android:padding="7dp" >
+
+        <TableRow
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" >
+
+            <Button
+                android:id="@+id/mainmenu_favorite"
+                android:layout_width="262dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:background="@drawable/selector_btn_main_favorite" />
+
+            <Button
+                android:id="@+id/mainmenu_theme"
+                android:layout_width="262dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:background="@drawable/selector_btn_main_theme" />
+
+            <Button
+                android:id="@+id/mainmenu_radio"
+                android:layout_width="262dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:background="@drawable/selector_btn_main_radio" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" >
+
+            <Button
+                android:id="@+id/mainmenu_chinese_hit"
+                android:layout_width="262dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:background="@drawable/selector_btn_main_popular" />
+
+            <Button
+                android:id="@+id/mainmenu_billboard"
+                android:layout_width="262dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:background="@drawable/selector_btn_main_billboard" />
+
+            <Button
+                android:id="@+id/mainmenu_new_hit"
+                android:layout_width="262dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:background="@drawable/selector_btn_main_new" />
+        </TableRow>
+    </TableLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="84px"
+        android:background="@drawable/bg_bottom"
+        android:id="@+id/bottom_play">
+
+        
+        
+        <Button
+            android:id="@+id/icon_play"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="26dp"
+            android:background="@drawable/selector_btn_play" />
+
+        <LinearLayout
+            android:id="@+id/bottom"
+            android:layout_width="600dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center" >
+            
+            <com.obigo.baidumusic.standard.view.CategoryView
+                android:id="@+id/category"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"  
+                android:layout_marginRight="13dp" />
+                
+            <TextView
+                android:id="@+id/music_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:gravity="right"
+                android:maxWidth="220dp"
+                android:singleLine="true"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/music_artist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:ellipsize="end"
+                android:maxWidth="220dp"
+                android:singleLine="true"
+                android:textColor="#007eff"
+                android:textSize="24sp" />
+        </LinearLayout>
+        <TextView 
+            android:id="@+id/bottom_notify"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:textSize="24sp"/>
+        
+
+    </LinearLayout>
+    
+
+</LinearLayout>

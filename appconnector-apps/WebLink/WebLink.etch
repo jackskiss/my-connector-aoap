@@ -1,0 +1,48 @@
+module com.obigo.weblink
+
+service WebLink
+{
+    ////////////////////
+    // Remote Control //
+    ////////////////////
+
+    enum RemoteControl
+    (
+        VOLUME_UP,
+        VOLUME_DOWN,
+        PLAY,
+        PAUSE,
+        NEXT,
+        PREV
+    )
+
+    @Direction(Server)
+    void remote_control(RemoteControl control)
+
+
+
+    ////////////////////
+    // Internet Radio //
+    ////////////////////
+    
+    struct RadioStation
+    (
+        int     id,
+        string  title,
+        string  genre,
+        string  url,
+        string  thumb
+    )
+
+    @Direction(Server)
+    RadioStation[] radio_station_list()
+
+    @Direction(Server)
+    int radio_station_count()
+
+    @Direction(Server)
+    RadioStation radio_station_get_at(int index)
+    
+    @Direction(Server)
+    void radio_station_select(int radio_station_id)
+}

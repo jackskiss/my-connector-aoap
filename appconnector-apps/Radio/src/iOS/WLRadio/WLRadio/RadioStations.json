@@ -1,0 +1,20 @@
+[
+  {
+  "title": "I Love Radio www.iloveradio.de",
+  "genre": "Pop",
+  "url": "http://80.237.156.44/iloveradio1.mp3",
+  "thumb": "../resource/img/tuner_large.png"
+  },
+  {
+  "title": "I Love 2 Dance www.iloveradio.de",
+  "genre": "House",
+  "url": "http://80.237.157.76/iloveradio2.mp3",
+  "thumb": "../resource/img/tuner_large.png"
+  },
+  {
+  "title": "euronews EN CUR",
+  "genre": "euronews radio latest",
+  "url": "http://euronews-02.ice.infomaniak.ch/euronews-02.mp3",
+  "thumb": "../resource/img/euronews-radio-logo-en-language.png",
+  },
+]

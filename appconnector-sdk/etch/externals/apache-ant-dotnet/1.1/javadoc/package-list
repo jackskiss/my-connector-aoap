@@ -1,0 +1,5 @@
+org.apache.ant.dotnet
+org.apache.ant.dotnet.build
+org.apache.ant.dotnet.compile
+org.apache.ant.dotnet.util
+org.apache.ant.dotnet.wix

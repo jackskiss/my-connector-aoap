@@ -1,0 +1,26 @@
+Changes in SVN trunk
+==============================================
+
+Changes that Could Break Older Environments:
+--------------------------------------------
+
+Fixed Bugs:
+-----------
+
+Other Changes:
+--------------
+
+
+        The NAnt and MSBuild task have new attributes failonerror and
+        errorproperty that allow users to fine-tune Ant's behaviour if
+        either of both signals an error.
+      
+        BugZilla Issue 40553
+
+
+        The NUnit task has a new attribute errorproperty that allows
+        users to set a property if NUnit signals a test failure.
+      
+        BugZilla Issue 40552
+
+

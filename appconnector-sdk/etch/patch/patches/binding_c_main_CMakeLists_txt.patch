@@ -1,0 +1,18 @@
+diff --git a/etch/trunk/binding-c/runtime/c/src/main/CMakeLists.txt b/etch/trunk/binding-c/runtime/c/src/main/CMakeLists.txt
+index 9d8998a..99bd094 100644
+--- CMakeLists.txt
++++ CMakeLists.txt
+@@ -107,3 +107,13 @@ set_target_properties(etch-c PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
+ ENDIF (UNIX)
+ set_target_properties(etch-c PROPERTIES OUTPUT_NAME "etch")
+ 
++# OBIGO(PATCH): Installation for iOS
++IF (IOS)
++    install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION include)
++    install(DIRECTORY ${ETCH_EXTERNAL_DEPENDS}/apr/1.4.8/include/ DESTINATION extern/apr/include)
++    install(DIRECTORY ${ETCH_EXTERNAL_DEPENDS}/apr/1.4.8/lib/ DESTINATION extern/apr/lib FILES_MATCHING PATTERN "lib*.a" PATTERN "iconv" EXCLUDE PATTERN "pkgconfig" EXCLUDE)
++    # CMake 2.8.11.2 does not support TARGETS installation for iOS yet.
++    #   see: http://www.cmake.org/Bug/print_bug_page.php?bug_id=12506
++    #   install(TARGETS etch-c DESTINATION .)
++    install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/\$ENV{CONFIGURATION}\$ENV{EFFECTIVE_PLATFORM_NAME}/ DESTINATION lib COMPONENT etch-c FILES_MATCHING PATTERN "*.a")
++ENDIF (IOS)

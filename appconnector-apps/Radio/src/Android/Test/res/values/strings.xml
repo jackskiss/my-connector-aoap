@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">WLRadioTest</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="test_remote_control">Remote Control Test</string>
+    <string name="test_internet_radio">Internet Radio Test</string>
+    <string name="server_ip">Server IP:</string>
+    <string name="btn_connect">connect</string>
+    <string name="btn_play">play</string>
+    <string name="btn_pause">pause</string>
+    <string name="btn_next">next</string>
+    <string name="btn_prev">prev</string>
+    <string name="btn_volum_up">v.up</string>
+    <string name="btn_volume_down">v.down</string>
+    <string name="btn_station_list">list</string>
+    <string name="btn_station_select">select</string>
+    <string name="btn_disconnect">close</string>
+    <string name="default_server_ip">192.168.0.32:4001</string>
+
+</resources>

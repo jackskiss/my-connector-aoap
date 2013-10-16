@@ -1,0 +1,141 @@
+ODEX decompilation
+ODEX is an Optimized DEX, which means a .odex file is a runtime instance of the dalvik byte code binary .dex file.
+Usually .dex file exists inside of .apk and it turns into .odex when running and stored in the dalvik cache. If the binary file exists in the form of .odex file, then it exists outside of .apk file and it is not stored in the dalvik cache. .odex file can boost the initial loading performance of android app.
+
+To decompile .dex files
+1. Convert .dex file into .jar file using dex2jar utility.
+2. Look into .jar file using jd-gui 
+   or extract .jar file into .class files and convert .class files into .java files using jad utility.
+
+
+To decompile .odex files, you need some prior steps changing .odex file into .dex file.
+
+0. prerequisites
+   - baksmali.jar & smali.jar from http://code.google.com/p/smali/downloads/list
+   - system/framework folder and the files in it.(This is usually included in the system.img of rom images.)
+   - Of course, the target .odex file.(for example "target_sample.odex")
+
+ 1. Convert .odex file into Smali format files using baksmali utility.
+    java -jar baksmali.jar -d system/framework -x target_sample.odex
+   -Here baksmali.jar filename may be changed depending on the file name and the version of baksmali.
+   - "system/framework" folder may be different depending on the place where you put it.
+   - Then the Smali formatted files are generated in the "out" folder.
+
+ 2. Bind the smali formatted files into .dex file.
+    java -jar smali.jar -o classes.dex out
+   -Here smali.jar filename may be changed depending on the file name and the version of smali.
+   - "-o" option is for designating the output file name of .dex file, so you can change the classes.dex into anything you want.
+   - the last "out" is the folder name generated in the prior step.
+
+
+Now you have the .dex file and you can proceed the dex/java decompilation.
+
+
+
+
+=======================================================================
+Here I wrote a batch file script for the above steps.
+
+Put a .odex file & framework folder and run the script.
+Then the decompilation of .odex-->.dex-->.jar-->.java is done at one shot.
+
+All the result and the related files are saved into a folder given as the argument of the script.
+The argument should be the name of .odex file without the extension .odex.
+
+The assumptions are as follows.
+0. In Windows7 environment, jdk is installed.(Test with jdk 1.7.0_25)
+1. dex2jar-0.0.9.13 folder exists. Of course dex2jar.bat should be there.
+2. baksmali-2.0b6.jar exists.
+3. jad.exe exists.
+4. smali-2.0b6.jar exists.
+5. Save the below script as odex2jard.bat.
+(If some files have different version, then the script should be revised accordingly.)
+===========================Start of script ================================
+@echo off
+if x%1x == xx ( 
+echo ....................................
+echo No argument.
+echo ....................................
+goto usage
+)
+if not exist .\%1.odex (
+echo ....................................
+echo %1.odex file does not exist.
+echo ....................................
+goto usage
+)
+if exist .\%1.dex (
+echo ....................................
+echo %1.dex file exists.
+echo Move or remove existing %1.dex file.
+echo ....................................
+goto usage
+)
+if exist .\%1_dex2jar (
+echo ....................................
+echo %1_dex2jar folder exists.
+echo Move or remove existing %1_dex2jar folder.
+echo ....................................
+goto usage
+)
+if exist .\%1_dex2jar.jar (
+echo ....................................
+echo %1_dex2jar.jar file exists.
+echo Move or remove existing %1_dex2jar.jar file.
+echo ....................................
+goto usage
+)
+if exist .\%1 (
+echo ....................................
+echo The result is saved into %1 folder.
+echo Move or remove existing %1 folder.
+echo ....................................
+goto usage
+)
+if exist .\out (
+echo ....................................
+echo "out" folder is used as temp.
+echo Move or remove "out" folder.
+echo ....................................
+goto usage
+)
+if not exist .\framework (
+echo ....................................
+echo No "framework" folder!!
+echo The framework folder should be right here.
+echo Cautious not to be system/framework!!
+echo ....................................
+goto usage
+)
+java -jar baksmali-2.0b6.jar -d framework -x %1.odex
+java -jar smali-2.0b6.jar -o %1.dex out
+rmdir /S /Q .\out
+call .\dex2jar-0.0.9.13\dex2jar.bat %1.dex
+mkdir %1_dex2jar
+cd %1_dex2jar
+jar xvf ..\%1_dex2jar.jar
+cd ..
+.\jad -o -d %1_dex2jar -r -s java %1_dex2jar/**/*.class
+mkdir %1
+move .\framework %1
+move .\%1.odex %1
+move .\%1.dex %1
+move .\%1_dex2jar.jar %1
+move .\%1_dex2jar %1
+echo ....................................
+echo DONE !!
+echo ....................................
+goto :eof
+:usage
+echo .
+echo Usage: 
+echo ....................................
+echo odex2jard.bat "target_filename"
+echo ....................................
+echo No file extension at "target_filename"
+echo eg) For abc.odex, type as follows
+echo odex2jard.bat abc
+echo ....................................
+goto :eof
+
+=========================== Endof script =================================

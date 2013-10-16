@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">IPodTest</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="ipodmgr_add_listener_button">Mgr.Add.L</string>
+    <string name="ipodmgr_remove_listener_button">Mgr.Del.L</string>
+    <string name="ipodobserver_add_listener_button">Obs.Add.L</string>
+    <string name="ipodobserver_remove_listener_button">Obs.Del.L</string>
+    <string name="clear_button">Clear</string>
+    <string name="send_button">Send</string>
+    <string name="ipodobserver_devices_button">Devices</string>
+
+</resources>
