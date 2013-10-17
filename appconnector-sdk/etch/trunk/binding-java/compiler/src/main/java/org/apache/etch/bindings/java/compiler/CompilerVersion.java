@@ -1,4 +1,4 @@
-/* $Id: Version.java.tmpl 767991 2009-04-23 17:36:27Z sccomer $
+/* $Id: CompilerVersion.java.tmpl 767991 2009-04-23 17:36:27Z sccomer $
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
@@ -18,13 +18,16 @@
  * under the License.
  */
 
-package org.apache.etch.compiler;
+package org.apache.etch.bindings.java.compiler;
 
 /**
- * The version info of the Etch frontend (parser)
+ * The version info of this Etch backend (compiler).
  */
-public interface Version
+public interface CompilerVersion
 {
-	/** The version of the Etch frontend (parser) */
-	public String VERSION = "Apache Etch 1.3.0 (LOCAL-0)";
+	// This file is edited by the production build system to replace the value
+	// of VERSION below with whatever it wants the version string to actually be.
+	
+	/** The version of this Etch backend (compiler) */
+	public String VERSION = "java 1.3.0 (LOCAL-0)";
 }
