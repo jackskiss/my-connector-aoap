@@ -87,6 +87,18 @@ abstract public class TransportFactory
 	 * server sessions.
 	 * @param uri listener configuration parameters.
 	 * @param resources additional resources needed by the listener.
+	 * @param obj transfer activity instance 
+	 * @return an out-of-band source which may be used to control the listener.
+	 * @throws Exception
+	 */
+	abstract protected Transport<ServerFactory> newListener( String uri,
+		Resources resources, Object obj ) throws Exception;
+	
+	/**
+	 * Constructs a new Transport Listener which is used to construct
+	 * server sessions.
+	 * @param uri listener configuration parameters.
+	 * @param resources additional resources needed by the listener.
 	 * @return an out-of-band source which may be used to control the listener.
 	 * @throws Exception
 	 */

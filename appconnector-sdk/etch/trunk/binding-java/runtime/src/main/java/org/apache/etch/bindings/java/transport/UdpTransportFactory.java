@@ -81,6 +81,12 @@ public class UdpTransportFactory extends TransportFactory
 		return new MySessionListener( this, transportListener, uri, resources );
 	}
 
+	@Override
+	protected Transport<ServerFactory> newListener(String uri,
+			Resources resources, Object obj) throws Exception {
+		return newListener( uri, resources );
+	}
+	
 	private class MySessionListener implements Transport<ServerFactory>, SessionListener<SocketAddress>
 	{
 		/**
@@ -167,4 +173,5 @@ public class UdpTransportFactory extends TransportFactory
 			session.sessionNotify( event );
 		}
 	}
+
 }

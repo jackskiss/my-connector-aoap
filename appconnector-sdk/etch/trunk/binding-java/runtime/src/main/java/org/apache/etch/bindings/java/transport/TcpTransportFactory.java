@@ -109,7 +109,13 @@ public class TcpTransportFactory extends TransportFactory
 		
 		return new MySessionListener( l, uri, resources );
 	}
-	
+
+	@Override
+	protected Transport<ServerFactory> newListener(String uri,
+			Resources resources, Object obj) throws Exception {
+		return newListener( uri, resources );			
+	}
+
 	private class MySessionListener implements Transport<ServerFactory>, SessionListener<Socket>
 	{
 		/**
@@ -197,4 +203,5 @@ public class TcpTransportFactory extends TransportFactory
 			session.sessionNotify( event );
 		}
 	}
+
 }

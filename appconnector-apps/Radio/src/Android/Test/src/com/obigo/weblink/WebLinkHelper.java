@@ -133,7 +133,7 @@ abstract public class WebLinkHelper extends TransportHelper
 		
 		URL u = new URL( uri );
 		
-		TransportMessage m = TransportFactory.getTransport( uri, res );
+		TransportMessage m = TransportFactory.getTransport( uri, res, (Object)implFactory );
 		MailboxManager r = new PlainMailboxManager( m, u, resources );
 		DeliveryService d = new DefaultDeliveryService( r, u, resources );
 		RemoteWebLinkServer server = new RemoteWebLinkServer( d, vf );
