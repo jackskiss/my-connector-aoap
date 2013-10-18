@@ -181,11 +181,25 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 
 	private void startService()
 	{
+		byte[] protocol = new byte[2];
+
 		IntentFilter filter = new IntentFilter(actionUsbPermission);
 		
 		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
 		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
 		appActivity.registerReceiver(usbReceiver, filter);
+
+		
+		usbDeviceConnection.controlTransfer(UsbConstants.USB_DIR_IN|UsbConstants.USB_TYPE_VENDOR,
+											AOAP_GET_PROTOCOL, 0, 0, protocol, 2, 0);
+
+		int getProto = ((protocol[1]<<8) | protocol[0]);
+			Log.d(TAG, "USB Device protocol is " + getProto);
+		
+		if (getProto < 1) {
+			Log.d(TAG, "AOAP supports protocol 1 or 2");
+			return;
+		}
 		
 		/* Send information of USB Accessory */											
 		usbDeviceConnection.controlTransfer(UsbConstants.USB_DIR_OUT|UsbConstants.USB_TYPE_VENDOR, 
