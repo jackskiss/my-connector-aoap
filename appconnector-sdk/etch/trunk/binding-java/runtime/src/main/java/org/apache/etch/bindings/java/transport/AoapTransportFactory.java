@@ -12,6 +12,7 @@ import org.apache.etch.util.core.io.Transport;
 import org.apache.etch.util.core.io.TransportPacket;
 
 import android.app.Activity;
+import android.content.Context;
 import android.hardware.usb.UsbManager;
 import android.util.Log;
 
@@ -19,7 +20,8 @@ public class AoapTransportFactory extends TransportFactory {
 
 	private static final String TAG = "AoapTransportFactory";
 	
-	private Activity appInstance; /* Application activity instance */ 
+	private Activity appInstance = null; /* Application activity instance */ 
+	private UsbManager usbManager = null;
 	private AoapConnection aoapConnection;
 	private AoapListener aoapListener;
 	
@@ -44,6 +46,8 @@ public class AoapTransportFactory extends TransportFactory {
 		{
 			appInstance = (Activity)obj;
 			
+			
+			usbManager = (UsbManager)appInstance.getSystemService(Context.USB_SERVICE);
 			/*
 			 * Check if accessory is with URL user name e.g., aoap://dev@ for host aoap://acc@ for accessory
 			 */
@@ -51,9 +55,9 @@ public class AoapTransportFactory extends TransportFactory {
 			String devType = url.getUser();
 			
 			if(devType.equals(AOAP_ACCESSORY_MODE))
-				aoapConnection = new AoapConnection( ); //Fix : Must distinguish between accessory and device
+				aoapConnection = new AoapConnection( appInstance, usbManager ); //Fix : Must distinguish between accessory and device
 			else /* default device mode */
-				aoapConnection = new AoapConnection( );
+				aoapConnection = new AoapConnection( appInstance, usbManager );
 			
 			TransportMessage transportMessage = new Messagizer ( transportPacket, url, resources );
 			transportMessage = addFilters( transportMessage, url, resources );
@@ -88,7 +92,7 @@ public class AoapTransportFactory extends TransportFactory {
 	protected Transport<ServerFactory> newListener(String uri,
 			Resources resources, Object obj) throws Exception {
 		
-		AoapListener transportListener = new AoapListener (); //Fix: Input parameter 
+		AoapListener transportListener = new AoapListener ( appInstance, usbManager); //Fix: Input parameter 
 					
 		return new MySessionListener( this, transportListener ); // Fix: Input parameter
 	}

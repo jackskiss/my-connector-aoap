@@ -16,6 +16,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
+import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
@@ -157,6 +158,29 @@ public class AoapConnection extends Connection<SessionPacket> implements
 	@Override
 	protected void readSocket() throws Exception {
 		// Fix: Read buffer
+		
+		FlexBuffer flexBuffer = null;
+        int ret = 0;
+        
+        byte[] buffer = new byte[16384];
+        flexBuffer = new FlexBuffer( buffer );
+        
+        while (isStarted())
+        {  
+	        while (ret >= 0) {
+	            try {
+	                ret = inputStream.read(buffer);
+	            } catch (IOException e) {
+	                break;
+	            }
+	
+	            if (ret > 0) {            	
+	            	// Send Message
+	            	session.sessionPacket(null, flexBuffer);
+	            }
+	        }
+        }
+        
 	}
 
 	@Override
