@@ -51,7 +51,7 @@ abstract public class WebLinkHelper extends TransportHelper
 	{
 		final Resources res = initResources( resources );
 		
-		final Transport<ServerFactory> listener = TransportFactory.getListener( uri, res );
+		final Transport<ServerFactory> listener = TransportFactory.getListener( uri, res, (Object)implFactory );
 		
 		return new DefaultServerFactory( listener, implFactory )
 		{

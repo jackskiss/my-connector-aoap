@@ -75,6 +75,12 @@ public class UdpTransportFactory extends TransportFactory
 	}
 
 	@Override
+	protected TransportMessage newTransport(String uri, Resources resources,
+			Object obj) throws Exception {
+		return newTransport( uri, resources );
+	}
+
+	@Override
 	public Transport<ServerFactory> newListener( final String uri, final Resources resources ) throws Exception
 	{
 		UdpListener transportListener = new UdpListener( uri );

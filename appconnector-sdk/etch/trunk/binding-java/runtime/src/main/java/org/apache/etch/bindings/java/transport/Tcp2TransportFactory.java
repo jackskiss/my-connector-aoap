@@ -88,6 +88,12 @@ public class Tcp2TransportFactory extends TransportFactory
 	}
 
 	@Override
+	protected TransportMessage newTransport(String uri, Resources resources,
+			Object obj) throws Exception {
+		return newTransport( uri, resources );
+	}
+
+	@Override
 	public Transport<ServerFactory> newListener( final String uri,
 		final Resources resources ) throws Exception
 	{
@@ -194,5 +200,4 @@ public class Tcp2TransportFactory extends TransportFactory
 			session.sessionNotify( event );
 		}
 	}
-
 }

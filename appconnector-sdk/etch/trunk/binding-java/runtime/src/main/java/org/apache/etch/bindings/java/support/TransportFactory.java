@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import org.apache.etch.bindings.java.transport.AoapTransportFactory;
 import org.apache.etch.bindings.java.transport.SessionMessage;
 import org.apache.etch.bindings.java.transport.TcpTransportFactory;
 import org.apache.etch.bindings.java.transport.TransportMessage;
@@ -63,6 +64,21 @@ abstract public class TransportFactory
 	 * @return the TransportMessage topping the transport stack.
 	 * @throws Exception
 	 */
+
+	abstract protected TransportMessage newTransport( String uri,
+			Resources resources, Object obj ) throws Exception;
+
+		/**
+		 * Constructs a new Transport stack topped by a TransportMessage
+		 * which is used by the remote service implementations to send
+		 * messages.
+		 * @param uri transport configuration parameters.
+		 * @param resources additional resources needed by the stack.
+		 * @param obj transfer activity of application instance
+		 * @return the TransportMessage topping the transport stack.
+		 * @throws Exception
+		 */
+
 	static public TransportMessage getTransport( String uri,
 		Resources resources ) throws Exception
 	{
@@ -71,6 +87,24 @@ abstract public class TransportFactory
 		return f.newTransport( uri, resources );
 	}
 
+	/**
+	 * Constructs a new Transport stack topped by a TransportMessage
+	 * which is used by the remote service implementations to send
+	 * messages.
+	 * @param uri transport configuration parameters.
+	 * @param resources additional resources needed by the stack.
+	 * @param obj transfer activity of application instance
+	 * @return the TransportMessage topping the transport stack.
+	 * @throws Exception
+	 */
+	static public TransportMessage getTransport( String uri,
+		Resources resources, Object obj ) throws Exception
+	{
+		URL u = new URL( uri );
+		TransportFactory f = getTransportFactory( u.getScheme() );
+		return f.newTransport( uri, resources, obj );
+	}
+	
 	/**
 	 * Constructs a new Transport Listener which is used to construct
 	 * server sessions.
@@ -110,6 +144,23 @@ abstract public class TransportFactory
 		return f.newListener( uri, resources );
 	}
 
+	/**
+	 * Constructs a new Transport Listener which is used to construct
+	 * server sessions.
+	 * @param uri listener configuration parameters.
+	 * @param resources additional resources needed by the listener.
+	 * @param obj transfer activity of application instance
+	 * @return an out-of-band source which may be used to control the listener.
+	 * @throws Exception
+	 */
+	static public Transport<ServerFactory> getListener( String uri,
+		Resources resources, Object obj ) throws Exception
+	{
+		URL u = new URL( uri );
+		TransportFactory f = getTransportFactory( u.getScheme() );
+		return f.newListener( uri, resources, obj );
+	}
+	
 	/**
 	 * Adds any message filters specified on the uri. They are added in order
 	 * from transport to session. The first filter is the session for Messagizer,
@@ -313,5 +364,7 @@ abstract public class TransportFactory
 		define( "tcp", new TcpTransportFactory( false ) );
 		define( "tls", new TcpTransportFactory( true ) );
 		define( "udp", new UdpTransportFactory( ) );
+		define( "aoap", new AoapTransportFactory( ) );
+		
 	}
 }
