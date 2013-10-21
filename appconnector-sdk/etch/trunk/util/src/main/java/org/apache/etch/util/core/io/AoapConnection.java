@@ -27,6 +27,7 @@ public class AoapConnection extends Connection<SessionPacket> implements
 	private static String actionUsbPermission;
 	private UsbManager usbManager = null;
 	private UsbAccessory usbAccessory = null;
+	private AoapListener listener = null;
 	
 	private Activity appActivity = null;
 
@@ -36,7 +37,7 @@ public class AoapConnection extends Connection<SessionPacket> implements
 
     private boolean permissionRequestPending;
     
-	public AoapConnection(Activity app, UsbManager um) {
+	public AoapConnection(Activity app, UsbManager um, AoapListener listener) {
 
 		if(app == null || um == null)
 		{
@@ -45,7 +46,20 @@ public class AoapConnection extends Connection<SessionPacket> implements
 		}
 		
 		usbManager = um;
-		appActivity = app;				
+		appActivity = app;	
+		this.listener = listener;
+	}
+
+	public AoapConnection(Activity app, UsbManager um ) {
+
+		if(app == null || um == null)
+		{
+			Log.d(TAG, "Error: app or um is null");
+			return;
+		}
+		
+		usbManager = um;
+		appActivity = app;	
 	}
 
     private boolean openAccessory(UsbAccessory accessory) {
@@ -127,6 +141,16 @@ public class AoapConnection extends Connection<SessionPacket> implements
 	@Override
 	protected boolean openSocket(boolean reconnect) throws Exception {
 
+		// if a one time connection from a server socket listener, just
+		// return the existing socket. Bail if this is a reconnect.
+		if (listener != null)
+		{
+			if (!reconnect && readQueue == null)
+				readQueue = listener.allocReadQueue( remoteAddress );
+
+			return !reconnect;
+		}
+		
 		if(usbManager != null && appActivity != null && !reconnect )
 		{
 			/* Check access permission by application */
@@ -135,10 +159,8 @@ public class AoapConnection extends Connection<SessionPacket> implements
 			Intent startIntent = appActivity.getIntent(); 
 			usbAccessory = (UsbAccessory) startIntent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);	        
 
-			if(openAccessory(usbAccessory))
-			{
+			if(openAccessory(usbAccessory)) /* Host mode or open USB device */
 				return true;
-			}	
 		}
 		
 		usbAccessory = null;

@@ -263,6 +263,10 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		byte[] buffer = new byte[16384];
 		
 		ret = usbDeviceConnection.bulkTransfer(usbEndpointControlRx, buffer, buffer.length, 500);
+		if (ret == 0)
+			session.sessionAccepted(usbManager);
+		else
+			Log.d(TAG,"Received Packet" + ret); // input Queue;
 	}
 
 	@Override

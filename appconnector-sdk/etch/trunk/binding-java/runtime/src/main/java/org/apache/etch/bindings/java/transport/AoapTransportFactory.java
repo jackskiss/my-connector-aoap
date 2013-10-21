@@ -25,8 +25,10 @@ public class AoapTransportFactory extends TransportFactory {
 	private AoapConnection aoapConnection;
 	private AoapListener aoapListener;
 	
-	private static final String AOAP_DEVICE_MODE = "dev";
-	private static final String AOAP_ACCESSORY_MODE = "acc";
+	private final static String AOAP_LISTENER = "AoapTransportFactory.aoapListener";
+	
+	private final static String AOAP_DEVICE_MODE = "dev";
+	private final static String AOAP_ACCESSORY_MODE = "acc";
 	
 	
 	@Override
@@ -40,6 +42,8 @@ public class AoapTransportFactory extends TransportFactory {
 	protected TransportMessage newTransport(String uri, Resources resources,
 			Object obj) throws Exception {
 		
+		AoapListener aoapListener = (AoapListener) resources.get( AOAP_LISTENER);
+		
 		TransportPacket transportPacket = null;
 		
 		if( obj != null ) /* Should transfer the activity instance */
@@ -52,13 +56,19 @@ public class AoapTransportFactory extends TransportFactory {
 			 * Check if accessory is with URL user name e.g., aoap://dev@ for host aoap://acc@ for accessory
 			 */
 			URL url = new URL(uri);
-			String devType = url.getUser();
+			String devType = url.getUser(); // Check device Type
 			
-			if(devType.equals(AOAP_ACCESSORY_MODE))
-				aoapConnection = new AoapConnection( appInstance, usbManager ); //Fix : Must distinguish between accessory and device
-			else /* default device mode */
+//			if(devType.equals(AOAP_ACCESSORY_MODE))
+//				
+//				aoapConnection = new AoapConnection( appInstance, usbManager ); //Fix : Must distinguish between accessory and device
+//			else /* default device mode */
+//				aoapConnection = new AoapConnection( appInstance, usbManager );
+
+			if ( aoapListener != null ) /* Host type */
+				aoapConnection = new AoapConnection( appInstance, usbManager, aoapListener ); 
+			else /* Accessory Type */
 				aoapConnection = new AoapConnection( appInstance, usbManager );
-			
+
 			TransportMessage transportMessage = new Messagizer ( transportPacket, url, resources );
 			transportMessage = addFilters( transportMessage, url, resources );
 				
@@ -94,21 +104,25 @@ public class AoapTransportFactory extends TransportFactory {
 		
 		AoapListener transportListener = new AoapListener ( appInstance, usbManager); //Fix: Input parameter 
 					
-		return new MySessionListener( this, transportListener ); // Fix: Input parameter
+		return new MySessionListener( this, transportListener, uri, resources ); // Fix: Input parameter
 	}
 	
 	private class MySessionListener implements Transport<ServerFactory>, SessionListener<UsbManager>
 	{
 
-		public MySessionListener( AoapTransportFactory atf, AoapListener listener )
+		public MySessionListener( AoapTransportFactory atf, AoapListener listener, String uri, Resources resources )
 		{
 			this.aoapTransportFactory = atf;
 			this.listener = listener;
+			this.resources = resources;
+			this.uri = uri;
 		}
 
 		private ServerFactory session;
 		private AoapTransportFactory aoapTransportFactory;
 		private AoapListener listener;
+		private String uri;
+		private Resources resources;
 
 		
 		@Override
@@ -130,6 +144,15 @@ public class AoapTransportFactory extends TransportFactory {
 		@Override
 		public void sessionAccepted(UsbManager connection) throws Exception {
 			// Fix : Control a connection flag
+			ValueFactory vf = session.newValueFactory( uri );
+			Resources r = new Resources ( resources );
+			
+			r.put( AOAP_LISTENER, listener);
+			r.put( Transport.VALUE_FACTORY,  vf);
+			
+			TransportMessage t = aoapTransportFactory.newTransport(uri, r);
+			
+			session.newServer(t, uri, r);
 		}
 
 		@Override
