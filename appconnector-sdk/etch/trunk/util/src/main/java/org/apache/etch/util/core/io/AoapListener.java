@@ -61,6 +61,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	private static final int AOAP_GET_PROTOCOL = 51;
 	private static final int AOAP_SEND_STRING = 52;
 	private static final int AOAP_START_ACCESSORY = 53;
+	private static final int AOAP_SUPPORT_AUDIO = 58;
 	
 	private static final int AOAP_STRING_MANUFACTURER = 0;
 	private static final int AOAP_STRING_MODEL = 1;
@@ -258,7 +259,10 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	@Override
 	protected void readSocket() throws Exception {
 		// TODO Auto-generated method stub
+		int ret = 0;
+		byte[] buffer = new byte[16384];
 		
+		ret = usbDeviceConnection.bulkTransfer(usbEndpointControlRx, buffer, buffer.length, 500);
 	}
 
 	@Override
