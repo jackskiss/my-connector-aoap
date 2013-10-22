@@ -165,9 +165,9 @@ public class AoapConnection extends Connection<SessionPacket> implements
 			
 			Intent startIntent = appActivity.getIntent(); 
 			usbAccessory = (UsbAccessory) startIntent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);	        
-
-			if(openAccessory(usbAccessory)) /* Host mode or open USB device */
-				return true;
+			openAccessory(usbAccessory); /* Host mode or open USB device */
+			
+			return true;
 		}
 		
 		usbAccessory = null;
