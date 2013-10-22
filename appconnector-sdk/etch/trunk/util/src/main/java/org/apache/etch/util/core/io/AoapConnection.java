@@ -1,10 +1,12 @@
 package org.apache.etch.util.core.io;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.util.concurrent.BlockingQueue;
 
 import org.apache.etch.util.FlexBuffer;
 import org.apache.etch.util.core.Who;
@@ -37,6 +39,10 @@ public class AoapConnection extends Connection<SessionPacket> implements
 
     private boolean permissionRequestPending;
     
+    private BlockingQueue<FlexBuffer> readQueue;
+    
+	private static final int READ_BYTE_BUFFER_SIZE = 16384; // Fix: Need to adjust particular this
+
 	public AoapConnection(Activity app, UsbManager um, AoapListener listener) {
 
 		if(app == null || um == null)
@@ -48,6 +54,7 @@ public class AoapConnection extends Connection<SessionPacket> implements
 		usbManager = um;
 		appActivity = app;	
 		this.listener = listener;
+		readQueue = listener.allocReadQueue();
 	}
 
 	public AoapConnection(Activity app, UsbManager um ) {
@@ -146,7 +153,7 @@ public class AoapConnection extends Connection<SessionPacket> implements
 		if (listener != null)
 		{
 			if (!reconnect && readQueue == null)
-				readQueue = listener.allocReadQueue( remoteAddress );
+				readQueue = listener.allocReadQueue();
 
 			return !reconnect;
 		}
@@ -184,23 +191,28 @@ public class AoapConnection extends Connection<SessionPacket> implements
 		FlexBuffer flexBuffer = null;
         int ret = 0;
         
-        byte[] buffer = new byte[16384];
-        flexBuffer = new FlexBuffer( buffer );
+        byte[] buffer = new byte[READ_BYTE_BUFFER_SIZE];
         
         while (isStarted())
         {  
-	        while (ret >= 0) {
-	            try {
-	                ret = inputStream.read(buffer);
-	            } catch (IOException e) {
-	                break;
-	            }
-	
-	            if (ret > 0) {            	
-	            	// Send Message
-	            	session.sessionPacket(null, flexBuffer);
-	            }
-	        }
+        	if(readQueue != null)
+        	{
+        		flexBuffer = readQueue.take();
+        	}
+        	else
+        	{
+        		ret = inputStream.read(buffer);
+        		if(ret > 0) {
+        			flexBuffer = new FlexBuffer(buffer);
+        			flexBuffer.setIndex(0);
+        			flexBuffer.setLength(buffer.length);
+        		}
+        			
+        	}
+ 	        
+        	// Send Message
+	        session.sessionPacket(null, flexBuffer);
+	        Log.d(TAG,"Received packet length" + flexBuffer.length());
         }
         
 	}

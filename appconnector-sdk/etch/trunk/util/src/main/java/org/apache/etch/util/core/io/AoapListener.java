@@ -1,7 +1,12 @@
 package org.apache.etch.util.core.io;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
+import org.apache.etch.util.FlexBuffer;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -71,13 +76,40 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	
 	private static final int USB_DEFAULT_CONTROL_INTERFACE	= 0x00;
 	private static final int USB_XBULK_ENDPOINT_NEEDED_NUM	= 0x02;
+	
+	private static final int READ_QUEUE_SIZE = 100; // Fix: Need to adjust particular this
+	private static final int READ_BYTE_BUFFER_SIZE = 16384; // Fix: Need to adjust particular this
+	
+	private BlockingQueue<FlexBuffer> readQueues = null;
 		
 	public AoapListener (Activity app, UsbManager um)
 	{
 		if(app != null && um != null) {
 			appActivity = app;
 			usbManager = um;
-		}		
+		}
+	}
+
+	public BlockingQueue<FlexBuffer> allocReadQueue()
+	{				
+		readQueues = new ArrayBlockingQueue<FlexBuffer>(READ_QUEUE_SIZE);
+		return readQueues;
+	}
+
+	private FlexBuffer getReadQueue()
+	{
+		try {
+			return readQueues.take();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+
+	public void releaseReadQueue()
+	{
+		// Free Queue
 	}
 	
 	private boolean usbVidPidChecker(int vid, int pid)
@@ -201,7 +233,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			Log.d(TAG, "AOAP supports protocol 1 or 2");
 			return;
 		}
-		
+				
 		/* Send information of USB Accessory */											
 		usbDeviceConnection.controlTransfer(UsbConstants.USB_DIR_OUT|UsbConstants.USB_TYPE_VENDOR, 
 											AOAP_SEND_STRING, 0, AOAP_STRING_MANUFACTURER, manufacturer.getBytes(), manufacturer.length(), 0);
@@ -258,15 +290,24 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 
 	@Override
 	protected void readSocket() throws Exception {
-		// TODO Auto-generated method stub
+
 		int ret = 0;
-		byte[] buffer = new byte[16384];
-		
-		ret = usbDeviceConnection.bulkTransfer(usbEndpointControlRx, buffer, buffer.length, 500);
-		if (ret == 0)
-			session.sessionAccepted(usbManager);
-		else
-			Log.d(TAG,"Received Packet" + ret); // input Queue;
+		byte[] buffer = new byte[READ_BYTE_BUFFER_SIZE];
+				
+		while(isStarted())
+		{				
+			if( !isConnected ) {
+				isConnected = true;
+				session.sessionAccepted(usbManager);				
+			}
+			
+			ret = usbDeviceConnection.bulkTransfer(usbEndpointControlRx, buffer, buffer.length, 500);
+			
+			if( ret > 0 ) {
+				readQueues.put( new FlexBuffer(buffer) );
+				Log.d(TAG,"Received Packet" + ret); // input Queue;
+			}
+		}
 	}
 
 	@Override
