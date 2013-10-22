@@ -40,7 +40,8 @@ public class MainActivity extends Activity implements WebLinkHelper.WebLinkClien
 				String serverIp = serverIpEdit.getText().toString();
 				
 				// TODO Change to correct URI
-				String uri = "tcp://" + serverIp;
+//				String uri = "tcp://" + serverIp;
+				String uri = "aoap://dev@" + serverIp;
 				
 				try {
 					weblinkServer = WebLinkHelper.newServer( uri, null,

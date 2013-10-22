@@ -69,7 +69,7 @@ public class AoapConnection extends Connection<SessionPacket> implements
 		appActivity = app;	
 	}
 
-    private boolean openAccessory(UsbAccessory accessory) {
+	private boolean openAccessory(UsbAccessory accessory) {
         
     	Log.d(TAG, "openAccessory: " + accessory);
         fileDescriptor = usbManager.openAccessory(accessory);

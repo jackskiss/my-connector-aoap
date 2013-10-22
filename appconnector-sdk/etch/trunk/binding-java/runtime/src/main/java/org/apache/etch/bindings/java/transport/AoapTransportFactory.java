@@ -65,9 +65,9 @@ public class AoapTransportFactory extends TransportFactory {
 //				aoapConnection = new AoapConnection( appInstance, usbManager );
 
 			if ( aoapListener != null ) /* Host type */
-				aoapConnection = new AoapConnection( appInstance, usbManager, aoapListener ); 
+				transportPacket = new AoapConnection( appInstance, usbManager, aoapListener ); 
 			else /* Accessory Type */
-				aoapConnection = new AoapConnection( appInstance, usbManager );
+				transportPacket = new AoapConnection( appInstance, usbManager );
 
 			TransportMessage transportMessage = new Messagizer ( transportPacket, url, resources );
 			transportMessage = addFilters( transportMessage, url, resources );
@@ -102,7 +102,7 @@ public class AoapTransportFactory extends TransportFactory {
 	protected Transport<ServerFactory> newListener(String uri,
 			Resources resources, Object obj) throws Exception {
 		
-		AoapListener transportListener = new AoapListener ( appInstance, usbManager); //Fix: Input parameter 
+		AoapListener transportListener = new AoapListener ( appInstance, usbManager ); //Fix: Input parameter 
 					
 		return new MySessionListener( this, transportListener, uri, resources ); // Fix: Input parameter
 	}
