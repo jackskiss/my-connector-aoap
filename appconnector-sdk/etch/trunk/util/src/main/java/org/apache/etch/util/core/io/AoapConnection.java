@@ -44,7 +44,9 @@ public class AoapConnection extends Connection<SessionPacket> implements
 	private static final int READ_BYTE_BUFFER_SIZE = 16384; // Fix: Need to adjust particular this
 
 	public AoapConnection(Activity app, UsbManager um, AoapListener listener) {
-
+		
+		Log.d(TAG, "Activity Connection creator");
+		
 		if(app == null || um == null)
 		{
 			Log.d(TAG, "Error: app or um is null");
@@ -95,7 +97,9 @@ public class AoapConnection extends Connection<SessionPacket> implements
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-        	
+	
+            Log.d(TAG, "Received Event" + intent.getAction());
+
         	/* USB Permission message */
             if (actionUsbPermission.equals(intent.getAction())) { 
                 synchronized (this) {
@@ -137,6 +141,7 @@ public class AoapConnection extends Connection<SessionPacket> implements
 		if(outputStream != null)
 		{
 			try {
+		       Log.d(TAG, "Transport packet buffer length:" + buf.length());
 	            outputStream.write(buf.getBuf());
 	        } catch (IOException e) {
 	            Log.e(TAG, "write failed", e);
@@ -150,6 +155,9 @@ public class AoapConnection extends Connection<SessionPacket> implements
 
 		// if a one time connection from a server socket listener, just
 		// return the existing socket. Bail if this is a reconnect.
+		
+       Log.d(TAG, "openSocket request connection :" + reconnect );
+
 		if (listener != null)
 		{
 			if (!reconnect && readQueue == null)
@@ -179,6 +187,8 @@ public class AoapConnection extends Connection<SessionPacket> implements
 		
 		if(usbManager != null && appActivity != null)
 		{
+	       Log.d(TAG, "Setup Socket");
+			
 			IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
 			appActivity.registerReceiver(usbReceiver, filter);
 		}

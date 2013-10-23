@@ -84,6 +84,8 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		
 	public AoapListener (Activity app, UsbManager um)
 	{
+		Log.d(TAG, "AoapListener Creation");
+		
 		if(app != null && um != null) {
 			appActivity = app;
 			usbManager = um;
@@ -92,6 +94,8 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 
 	public BlockingQueue<FlexBuffer> allocReadQueue()
 	{				
+       Log.d(TAG, "allocReadQueue");
+		
 		readQueues = new ArrayBlockingQueue<FlexBuffer>(READ_QUEUE_SIZE);
 		return readQueues;
 	}
@@ -99,6 +103,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	private FlexBuffer getReadQueue()
 	{
 		try {
+	       Log.d(TAG, "getReadQueue");
 			return readQueues.take();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -115,6 +120,8 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	private boolean usbVidPidChecker(int vid, int pid)
 	{
 		// Fix: if(Vendor Checker ????? )
+       Log.d(TAG, "VID PID Check Vid: " + vid + " Pid: " + pid);
+
 		if( pid != USB_PRODUCTID_ACCESSORY 
 		 || pid != USB_PRODUCTID_ACCESSORY_ADB
 		 || pid != USB_PRODUCTID_AUDIO
@@ -140,6 +147,8 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		
 		UsbInterface tempInterface;
 		UsbEndpoint tempEndpoint;
+
+		Log.d(TAG, "scanEndpoint");
 		
 		for (int idx=0; idx<infCount; idx++)
 		{
@@ -172,6 +181,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 						usbEndpointControlRx = usbEndpointRx0;
 						usbEndpointControlTx = usbEndpointTx0;						
 						/* Found out endpoints to communicate */
+						Log.d(TAG, "Found out Endpoint RX: " + usbEndpointControlRx.toString() + " TX: " + usbEndpointControlTx.toString());
 						return true; 
 					}
 				}
@@ -193,6 +203,8 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	
 	private boolean connectUsbDevice(UsbManager um, Intent intent)
 	{
+		Log.d(TAG, "Connect USB device");
+		
 		permissionIntent = PendingIntent.getBroadcast(appActivity, 0, new Intent(actionUsbPermission), 0);
 		
 		setUsbDevice(intent);
@@ -208,7 +220,10 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 					return true;
 				}
 			}
-		}		
+		}
+		
+		Log.d(TAG,"connectUsbDevice: Fail to Connection");
+		
 		return false;
 	}
 
@@ -242,12 +257,17 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		/* Start Accessory mode */
 		usbDeviceConnection.controlTransfer(UsbConstants.USB_DIR_OUT|UsbConstants.USB_TYPE_VENDOR, 
 											AOAP_START_ACCESSORY, 0, 0, null, 0, 0);
+
+		Log.d(TAG,"startService: Connnect Accessory Protocol");
+
 	}
 	
 	
 	@Override
 	protected boolean openSocket(boolean reconnect) throws Exception {
 		
+		Log.d(TAG,"openSocket: " + reconnect);
+
 		if(usbManager != null && appActivity != null && !reconnect )
 		{
 			/* Check access permission by application */
@@ -263,6 +283,9 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 
 	BroadcastReceiver usbReceiver = new BroadcastReceiver() {
 		public void onReceive(Context context, Intent intent) {
+			
+			Log.d(TAG,"Boadcast Recevicer: " + intent.getAction());
+
 			if (actionUsbPermission.equals(intent.getAction())) {
 				if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
 	                synchronized (this) {	                    
