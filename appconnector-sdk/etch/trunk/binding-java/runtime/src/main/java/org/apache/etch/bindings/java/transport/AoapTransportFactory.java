@@ -101,7 +101,11 @@ public class AoapTransportFactory extends TransportFactory {
 	@Override
 	protected Transport<ServerFactory> newListener(String uri,
 			Resources resources, Object obj) throws Exception {
+
+		appInstance = (Activity)obj;
 		
+		usbManager = (UsbManager)appInstance.getSystemService(Context.USB_SERVICE);		
+
 		AoapListener transportListener = new AoapListener ( appInstance, usbManager ); //Fix: Input parameter 
 					
 		return new MySessionListener( this, transportListener, uri, resources ); // Fix: Input parameter
@@ -116,6 +120,7 @@ public class AoapTransportFactory extends TransportFactory {
 			this.listener = listener;
 			this.resources = resources;
 			this.uri = uri;
+			listener.setSession(this);
 		}
 
 		private ServerFactory session;

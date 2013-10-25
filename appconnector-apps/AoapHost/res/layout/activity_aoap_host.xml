@@ -16,6 +16,15 @@
         android:layout_alignParentTop="true"
         android:layout_marginLeft="105dp"
         android:layout_marginTop="84dp"
-        android:text="Button" />
+        android:text="Listen" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/button1"
+        android:layout_below="@+id/button1"
+        android:layout_marginTop="32dp"
+        android:text="USB check" />
 
 </RelativeLayout>

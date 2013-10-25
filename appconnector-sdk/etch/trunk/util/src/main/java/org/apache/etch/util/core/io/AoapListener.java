@@ -3,6 +3,8 @@ package org.apache.etch.util.core.io;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -21,7 +23,9 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
+import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 public class AoapListener extends Connection<SessionListener<UsbManager>>
 		implements Transport<SessionListener<UsbManager>> {
@@ -30,6 +34,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	
 	private Activity appActivity = null;
 	
+	private hostUSBDemonThread usbHostDemon;
 	private UsbManager usbManager = null;
 	private UsbDevice usbDevice = null;
 	private UsbInterface usbInterface = null;
@@ -44,15 +49,16 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	private PendingIntent permissionIntent;
 	private String actionUsbPermission;
 	private boolean isConnected = false;
+	private boolean hasPermission = false;
 	private int vendorID;
 	private int productID;
 	
-	private static final int USB_VENDORID_GOOGLE =		0x18D1;
-	private static final int USB_VENDORID_MOTOROLA =	0x22B8;
-	private static final int USB_VENDORID_SAMSUNG =		0x18D1;
-	private static final int USB_VENDORID_LG = 			0x1004;
-	private static final int USB_VENDORID_SHARP = 		0x04DD;
-	private static final int USB_VENDORID_LENOVO = 		0x17EF;
+//	private static final int USB_VENDORID_GOOGLE =		0x18D1;
+//	private static final int USB_VENDORID_MOTOROLA =	0x22B8;
+//	private static final int USB_VENDORID_SAMSUNG =		0x04E8;
+//	private static final int USB_VENDORID_LG = 			0x1004;
+//	private static final int USB_VENDORID_SHARP = 		0x04DD;
+//	private static final int USB_VENDORID_LENOVO = 		0x17EF;
 
 	/* AOA 1.0 */
 	private static final int USB_PRODUCTID_ACCESSORY = 				0x2D00;
@@ -81,15 +87,44 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	private static final int READ_BYTE_BUFFER_SIZE = 16384; // Fix: Need to adjust particular this
 	
 	private BlockingQueue<FlexBuffer> readQueues = null;
+	
 		
 	public AoapListener (Activity app, UsbManager um)
 	{
-		Log.d(TAG, "AoapListener Creation");
 		
 		if(app != null && um != null) {
 			appActivity = app;
 			usbManager = um;
+
+			/* Check access permission by application */
+			actionUsbPermission = appActivity.getPackageName() + ".USB_PERMISSION";
+			
+			Log.d(TAG, "AoapListener Creation:" + actionUsbPermission);
+			
+			Toast.makeText(appActivity.getApplicationContext(),  "AoapListener Creation:" + actionUsbPermission, Toast.LENGTH_SHORT).show();
+			
+			permissionIntent = PendingIntent.getBroadcast(appActivity.getApplicationContext(), 0, new Intent(actionUsbPermission), 0);
+			
+			IntentFilter filter = new IntentFilter(actionUsbPermission);
+			
+			filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
+			filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
+			appActivity.registerReceiver(usbReceiver, filter);			
+			
+			usbHostDemon = new hostUSBDemonThread();
+			usbHostDemon.start();
+
+			Intent startIntent = appActivity.getIntent();
+			
+			if(connectUsbDevice(usbManager, startIntent))
+				startService();;
 		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	public void finalize()
+	{
+		usbHostDemon.stop();
 	}
 
 	public BlockingQueue<FlexBuffer> allocReadQueue()
@@ -121,6 +156,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	{
 		// Fix: if(Vendor Checker ????? )
        Log.d(TAG, "VID PID Check Vid: " + vid + " Pid: " + pid);
+		Toast.makeText(appActivity,  "VID PID Check Vid: " + vid + " Pid: " + pid , Toast.LENGTH_SHORT).show();
 
 		if( pid != USB_PRODUCTID_ACCESSORY 
 		 || pid != USB_PRODUCTID_ACCESSORY_ADB
@@ -149,6 +185,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		UsbEndpoint tempEndpoint;
 
 		Log.d(TAG, "scanEndpoint");
+		Toast.makeText(appActivity,  "scanEndpoint" , Toast.LENGTH_SHORT).show();
 		
 		for (int idx=0; idx<infCount; idx++)
 		{
@@ -182,6 +219,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 						usbEndpointControlTx = usbEndpointTx0;						
 						/* Found out endpoints to communicate */
 						Log.d(TAG, "Found out Endpoint RX: " + usbEndpointControlRx.toString() + " TX: " + usbEndpointControlTx.toString());
+						Toast.makeText(appActivity,  "Foundout Endpoint RX/TX" , Toast.LENGTH_SHORT).show();
 						return true; 
 					}
 				}
@@ -193,36 +231,106 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		return false;
 	}
 	
-	private void setUsbDevice(Intent intent)
+	private class hostUSBDemonThread extends Thread {
+		
+		public boolean isRunning = true;
+		private boolean isConnected = false;
+		
+		public void run() {
+			while(isRunning && !appActivity.isDestroyed()) {
+				if(usbManager != null) {
+					if(setUsbDevice(appActivity.getIntent())) {
+						if(!isConnected) {
+							isConnected = true;
+							//Fix: Send information of changed.
+                        	if(connectUsbDevice(usbManager, appActivity.getIntent())) {
+                        		startService();	                        	
+                        	}
+/*                        	Looper.prepare();
+							Toast.makeText(appActivity.getApplicationContext(),  "USB device Connected", Toast.LENGTH_SHORT).show();
+							Looper.loop();
+*/							Log.d(TAG, "USB device Conneced in Thread");
+						}
+					} else {
+						if(isConnected) {
+							isConnected = false;
+							hasPermission = false;
+							//Fix: Send information of changed.
+/*                        	Looper.prepare();
+							Toast.makeText(appActivity.getApplicationContext(),  "USB device Disconnected", Toast.LENGTH_SHORT).show();
+							Looper.loop();
+*/							Log.d(TAG, "USB device Disconneced in Thread");
+						}						
+					}
+				
+					
+				}
+				
+				try {
+					sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	private synchronized boolean setUsbDevice(Intent intent)
 	{
 		usbDevice = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-		vendorID = usbDevice.getVendorId();
-		productID = usbDevice.getProductId();
 		
+		if(usbDevice != null)
+		{
+			vendorID = usbDevice.getVendorId();
+			productID = usbDevice.getProductId();
+			return true;
+		}
+		
+		HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+		Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+		while(deviceIterator.hasNext()){
+			
+		    usbDevice = deviceIterator.next();
+		    if(usbDevice != null)
+			{
+				vendorID = usbDevice.getVendorId();
+				productID = usbDevice.getProductId();
+				return true;
+			}	
+		}				
+		
+		Log.d(TAG, "setUsbDevice: Cannot get usbDevice instance");
+		return false;
 	}
 	
 	private boolean connectUsbDevice(UsbManager um, Intent intent)
 	{
 		Log.d(TAG, "Connect USB device");
+		Toast.makeText(appActivity,  "Connect USB device" , Toast.LENGTH_SHORT).show();
 		
-		permissionIntent = PendingIntent.getBroadcast(appActivity, 0, new Intent(actionUsbPermission), 0);
-		
-		setUsbDevice(intent);
-		
-		if(usbVidPidChecker(vendorID, productID) && scanEndpoint(usbDevice)) {
+		if(setUsbDevice(intent) && scanEndpoint(usbDevice)) {
+//		if(setUsbDevice(intent) && usbVidPidChecker(vendorID, productID) && scanEndpoint(usbDevice)) {
 			usbInterface = usbDevice.getInterface(USB_DEFAULT_CONTROL_INTERFACE);
 		
 			if(usbInterface != null) {
+				if(!hasPermission)
+				{
+					usbManager.requestPermission(usbDevice, permissionIntent);
+					Log.d(TAG,"connectUsbDevice: Request Permission");
+					return false;
+				}
+				
 				usbDeviceConnection = um.openDevice(usbDevice);		
 				if(usbDeviceConnection != null){
 					usbDeviceConnection.claimInterface(usbInterface, true); /* Use interface exclusive */
-					usbManager.requestPermission(usbDevice, permissionIntent);
+// Fix: Move to openDevice before					usbManager.requestPermission(usbDevice, permissionIntent);
 					return true;
 				}
 			}
 		}
 		
-		Log.d(TAG,"connectUsbDevice: Fail to Connection");
+		Log.d(TAG,"connectUsbDevice: No device in host");
 		
 		return false;
 	}
@@ -230,13 +338,6 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	private void startService()
 	{
 		byte[] protocol = new byte[2];
-
-		IntentFilter filter = new IntentFilter(actionUsbPermission);
-		
-		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
-		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-		appActivity.registerReceiver(usbReceiver, filter);
-
 		
 		usbDeviceConnection.controlTransfer(UsbConstants.USB_DIR_IN|UsbConstants.USB_TYPE_VENDOR,
 											AOAP_GET_PROTOCOL, 0, 0, protocol, 2, 0);
@@ -265,20 +366,8 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	
 	@Override
 	protected boolean openSocket(boolean reconnect) throws Exception {
-		
-		Log.d(TAG,"openSocket: " + reconnect);
-
-		if(usbManager != null && appActivity != null && !reconnect )
-		{
-			/* Check access permission by application */
-			actionUsbPermission = appActivity.getPackageName() + ".action.USB_PERMISSION";
-			Intent startIntent = appActivity.getIntent();
-			
-			if(connectUsbDevice(usbManager, startIntent))
-				return true;
-		}
 				
-		return false;
+		return true;
 	}
 
 	BroadcastReceiver usbReceiver = new BroadcastReceiver() {
@@ -289,26 +378,33 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			if (actionUsbPermission.equals(intent.getAction())) {
 				if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
 	                synchronized (this) {	                    
-	                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
 	                        if (usbDevice != null)
-	                        	usbManager.openDevice(usbDevice);
-	                        Log.d(TAG, "permission granted ");        
-	                    } else 
-	                        Log.d(TAG, "permission denied for Hostmode ");        
-	                }
-				} 
+	                        {
+	                        	hasPermission = true;
+	                        	if(connectUsbDevice(usbManager, intent)) {
+	                        		startService();	                        	
+	                        		Log.d(TAG, "permission granted ");
+	                        	}
+	                        }
+	                }        
+	             }
+				 else 
+                     Log.d(TAG, "permission denied for Hostmode ");				
             } else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
-            	setUsbDevice(intent);
-    			usbManager.requestPermission(usbDevice, permissionIntent);
+            	connectUsbDevice(usbManager, intent);
+            	startService();
 			} else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(intent.getAction())) {
 				// Fix: Close usb connection 
+				usbDeviceConnection.releaseInterface(usbInterface);
+				usbDeviceConnection.close();
+				
 			}
 		}
 	};
 	
 	@Override
 	protected void setupSocket() throws Exception {
-		startService();
+		
 	}
 
 	@Override
@@ -336,7 +432,8 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	@Override
 	public void close(boolean reset) throws Exception {
 		// TODO Auto-generated method stub
-		
+		if(appActivity != null)
+			appActivity.unregisterReceiver(usbReceiver);		
 	}
 
 	@Override
