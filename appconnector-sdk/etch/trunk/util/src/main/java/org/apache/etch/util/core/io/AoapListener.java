@@ -23,7 +23,9 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
+import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -49,9 +51,13 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	private PendingIntent permissionIntent;
 	private String actionUsbPermission;
 	private boolean isConnected = false;
-	private boolean hasPermission = false;
 	private int vendorID;
 	private int productID;
+
+	private static final int USB_PERMISSION_NO = 0;
+	private static final int USB_PERMISSION_PENDING = 1;	
+	private static final int USB_PERMISSION_HAVE = 1;	
+	private int havePermission = USB_PERMISSION_NO;
 	
 //	private static final int USB_VENDORID_GOOGLE =		0x18D1;
 //	private static final int USB_VENDORID_MOTOROLA =	0x22B8;
@@ -101,24 +107,48 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			
 			Log.d(TAG, "AoapListener Creation:" + actionUsbPermission);
 			
-			Toast.makeText(appActivity.getApplicationContext(),  "AoapListener Creation:" + actionUsbPermission, Toast.LENGTH_SHORT).show();
-			
+			aoapToastMessage("AoapListener Creation:" + actionUsbPermission);
 			permissionIntent = PendingIntent.getBroadcast(appActivity.getApplicationContext(), 0, new Intent(actionUsbPermission), 0);
 			
 			IntentFilter filter = new IntentFilter(actionUsbPermission);
 			
-			filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
-			filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
+			filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+			filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
 			appActivity.registerReceiver(usbReceiver, filter);			
 			
-			usbHostDemon = new hostUSBDemonThread();
-			usbHostDemon.start();
+//			usbHostDemon = new hostUSBDemonThread();
+//			usbHostDemon.start();
 
 			Intent startIntent = appActivity.getIntent();
+
+			/* Initialize */
+			havePermission = USB_PERMISSION_NO;
 			
 			if(connectUsbDevice(usbManager, startIntent))
 				startService();;
 		}
+	}
+	
+	Handler mToastHandler = new Handler() {
+		public void handleMessage(Message msg){
+			if(msg.what == TOAST_MESSAGE)
+			{
+				Toast.makeText(appActivity, (String) msg.obj, Toast.LENGTH_SHORT).show();
+			}
+		}
+	};
+	
+	private final static int TOAST_MESSAGE = 1;
+	
+	private void aoapToastMessage(String msg)
+	{
+		
+		Message tmsg = Message.obtain();
+		
+		tmsg.what = TOAST_MESSAGE;
+		tmsg.obj = msg;
+		
+		mToastHandler.sendMessage(tmsg);
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -154,10 +184,10 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	
 	private boolean usbVidPidChecker(int vid, int pid)
 	{
-		// Fix: if(Vendor Checker ????? )
-       Log.d(TAG, "VID PID Check Vid: " + vid + " Pid: " + pid);
-		Toast.makeText(appActivity,  "VID PID Check Vid: " + vid + " Pid: " + pid , Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "VID PID Check Vid: " + vid + " Pid: " + pid);
 
+        aoapToastMessage("VID PID Check Vid: " + vid + " Pid: " + pid);
+		
 		if( pid != USB_PRODUCTID_ACCESSORY 
 		 || pid != USB_PRODUCTID_ACCESSORY_ADB
 		 || pid != USB_PRODUCTID_AUDIO
@@ -185,8 +215,8 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		UsbEndpoint tempEndpoint;
 
 		Log.d(TAG, "scanEndpoint");
-		Toast.makeText(appActivity,  "scanEndpoint" , Toast.LENGTH_SHORT).show();
-		
+//		Toast.makeText(appActivity,  "scanEndpoint" , Toast.LENGTH_SHORT).show();
+		aoapToastMessage("scanEndpoint");
 		for (int idx=0; idx<infCount; idx++)
 		{
 			tempInterface = usbDevice.getInterface(idx);
@@ -219,7 +249,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 						usbEndpointControlTx = usbEndpointTx0;						
 						/* Found out endpoints to communicate */
 						Log.d(TAG, "Found out Endpoint RX: " + usbEndpointControlRx.toString() + " TX: " + usbEndpointControlTx.toString());
-						Toast.makeText(appActivity,  "Foundout Endpoint RX/TX" , Toast.LENGTH_SHORT).show();
+						aoapToastMessage("Foundout Endpoint RX/TX");
 						return true; 
 					}
 				}
@@ -237,33 +267,26 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		private boolean isConnected = false;
 		
 		public void run() {
-			while(isRunning && !appActivity.isDestroyed()) {
+			while(isRunning) {
 				if(usbManager != null) {
 					if(setUsbDevice(appActivity.getIntent())) {
 						if(!isConnected) {
 							isConnected = true;
-							//Fix: Send information of changed.
                         	if(connectUsbDevice(usbManager, appActivity.getIntent())) {
                         		startService();	                        	
                         	}
-/*                        	Looper.prepare();
-							Toast.makeText(appActivity.getApplicationContext(),  "USB device Connected", Toast.LENGTH_SHORT).show();
-							Looper.loop();
-*/							Log.d(TAG, "USB device Conneced in Thread");
+                        	aoapToastMessage("USB device Connected");
+                        	Log.d(TAG, "USB device Conneced in Thread");
 						}
 					} else {
-						if(isConnected) {
+						if(isConnected)
+						{
 							isConnected = false;
-							hasPermission = false;
-							//Fix: Send information of changed.
-/*                        	Looper.prepare();
-							Toast.makeText(appActivity.getApplicationContext(),  "USB device Disconnected", Toast.LENGTH_SHORT).show();
-							Looper.loop();
-*/							Log.d(TAG, "USB device Disconneced in Thread");
-						}						
+							havePermission = USB_PERMISSION_NO ;
+							aoapToastMessage("USB device Disconnected");
+							Log.d(TAG, "USB device Disconneced in Thread");
+						}
 					}
-				
-					
 				}
 				
 				try {
@@ -287,36 +310,38 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			return true;
 		}
 		
-		HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
-		Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
-		while(deviceIterator.hasNext()){
-			
-		    usbDevice = deviceIterator.next();
-		    if(usbDevice != null)
-			{
-				vendorID = usbDevice.getVendorId();
-				productID = usbDevice.getProductId();
-				return true;
-			}	
-		}				
-		
+
+/* 		HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+		if(!deviceList.isEmpty()) {			
+			Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+			while(deviceIterator.hasNext()){
+				
+			    usbDevice = deviceIterator.next();
+			    if(usbDevice != null)
+				{
+					vendorID = usbDevice.getVendorId();
+					productID = usbDevice.getProductId();
+					return true;
+				}	
+			}				
+		}
+*/
 		Log.d(TAG, "setUsbDevice: Cannot get usbDevice instance");
 		return false;
 	}
 	
 	private boolean connectUsbDevice(UsbManager um, Intent intent)
 	{
-		Log.d(TAG, "Connect USB device");
-		Toast.makeText(appActivity,  "Connect USB device" , Toast.LENGTH_SHORT).show();
-		
-		if(setUsbDevice(intent) && scanEndpoint(usbDevice)) {
-//		if(setUsbDevice(intent) && usbVidPidChecker(vendorID, productID) && scanEndpoint(usbDevice)) {
+		Log.d(TAG, "Connecting USB device");
+    	aoapToastMessage( "Connecting USB device");
+    	
+		if((havePermission != USB_PERMISSION_HAVE) && setUsbDevice(intent) && scanEndpoint(usbDevice)) {
 			usbInterface = usbDevice.getInterface(USB_DEFAULT_CONTROL_INTERFACE);
-		
 			if(usbInterface != null) {
-				if(!hasPermission)
+				if(!usbManager.hasPermission(usbDevice))
 				{
 					usbManager.requestPermission(usbDevice, permissionIntent);
+					havePermission = USB_PERMISSION_PENDING;
 					Log.d(TAG,"connectUsbDevice: Request Permission");
 					return false;
 				}
@@ -324,13 +349,12 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 				usbDeviceConnection = um.openDevice(usbDevice);		
 				if(usbDeviceConnection != null){
 					usbDeviceConnection.claimInterface(usbInterface, true); /* Use interface exclusive */
-// Fix: Move to openDevice before					usbManager.requestPermission(usbDevice, permissionIntent);
 					return true;
 				}
 			}
-		}
+		} 
 		
-		Log.d(TAG,"connectUsbDevice: No device in host");
+		Log.d(TAG,"connectUsbDevice: No connect yet");
 		
 		return false;
 	}
@@ -358,7 +382,8 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		/* Start Accessory mode */
 		usbDeviceConnection.controlTransfer(UsbConstants.USB_DIR_OUT|UsbConstants.USB_TYPE_VENDOR, 
 											AOAP_START_ACCESSORY, 0, 0, null, 0, 0);
-
+		
+		isConnected = true;
 		Log.d(TAG,"startService: Connnect Accessory Protocol");
 
 	}
@@ -374,13 +399,14 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		public void onReceive(Context context, Intent intent) {
 			
 			Log.d(TAG,"Boadcast Recevicer: " + intent.getAction());
-
+			aoapToastMessage("Boadcast Recevicer: " + intent.getAction());
+			
 			if (actionUsbPermission.equals(intent.getAction())) {
 				if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
 	                synchronized (this) {	                    
 	                        if (usbDevice != null)
 	                        {
-	                        	hasPermission = true;
+	                        	havePermission = USB_PERMISSION_HAVE;
 	                        	if(connectUsbDevice(usbManager, intent)) {
 	                        		startService();	                        	
 	                        		Log.d(TAG, "permission granted ");
@@ -397,6 +423,8 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 				// Fix: Close usb connection 
 				usbDeviceConnection.releaseInterface(usbInterface);
 				usbDeviceConnection.close();
+				havePermission = USB_PERMISSION_NO;
+				isConnected = false;
 				
 			}
 		}

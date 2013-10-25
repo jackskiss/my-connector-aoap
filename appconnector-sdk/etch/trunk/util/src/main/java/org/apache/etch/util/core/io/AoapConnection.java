@@ -12,15 +12,18 @@ import org.apache.etch.util.FlexBuffer;
 import org.apache.etch.util.core.Who;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
+import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
+import android.widget.Toast;
 
 public class AoapConnection extends Connection<SessionPacket> implements
 		TransportPacket, Runnable {
@@ -37,8 +40,12 @@ public class AoapConnection extends Connection<SessionPacket> implements
     private FileInputStream inputStream = null;
     private FileOutputStream outputStream = null;	
 
-    private boolean permissionRequestPending;
-    
+	private static final int USB_PERMISSION_NO = 0;
+	private static final int USB_PERMISSION_PENDING = 1;	
+	private static final int USB_PERMISSION_HAVE = 1;	
+	private int havePermission = USB_PERMISSION_NO;
+	private PendingIntent permissionIntent;
+	
     private BlockingQueue<FlexBuffer> readQueue;
     
 	private static final int READ_BYTE_BUFFER_SIZE = 16384; // Fix: Need to adjust particular this
@@ -53,27 +60,68 @@ public class AoapConnection extends Connection<SessionPacket> implements
 			return;
 		}
 		
+		aoapToastMessage("Activity Connection creator");
+		
 		usbManager = um;
 		appActivity = app;	
 		this.listener = listener;
 		readQueue = listener.allocReadQueue();
+
 	}
 
 	public AoapConnection(Activity app, UsbManager um ) {
 
+		Log.d(TAG, "Activity Connection creator");
+		
 		if(app == null || um == null)
 		{
 			Log.d(TAG, "Error: app or um is null");
 			return;
 		}
 		
+		aoapToastMessage("Activity Connection creator");
+		
 		usbManager = um;
 		appActivity = app;	
+		
+		/* Initialize */
+		havePermission = USB_PERMISSION_NO;
+				
+		IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
+		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
+		appActivity.registerReceiver(usbReceiver, filter);
+		
+		if(setUSBDevice())
+			openAccessory(usbAccessory);
+		
 	}
 
+	Handler mToastHandler = new Handler() {
+		public void handleMessage(Message msg){
+			if(msg.what == TOAST_MESSAGE)
+			{
+				Toast.makeText(appActivity, (String) msg.obj, Toast.LENGTH_SHORT).show();
+			}
+		}
+	};
+	
+	private final static int TOAST_MESSAGE = 1;
+	
+	private void aoapToastMessage(String msg)
+	{
+		
+		Message tmsg = Message.obtain();
+		
+		tmsg.what = TOAST_MESSAGE;
+		tmsg.obj = msg;
+		
+		mToastHandler.sendMessage(tmsg);
+	}
+	
 	private boolean openAccessory(UsbAccessory accessory) {
         
     	Log.d(TAG, "openAccessory: " + accessory);
+    	aoapToastMessage("openAccessory: " + accessory);
         fileDescriptor = usbManager.openAccessory(accessory);
         
         if (fileDescriptor != null) {
@@ -87,9 +135,11 @@ public class AoapConnection extends Connection<SessionPacket> implements
             // thread.start();
             
             Log.d(TAG, "openAccessory succeeded");
+            aoapToastMessage("openAccessory: Connected");
             return true;
         } else {
             Log.d(TAG, "openAccessory fail");
+            aoapToastMessage("openAccessory: Connection Fail");
             return false;
         }
     }	
@@ -99,21 +149,20 @@ public class AoapConnection extends Connection<SessionPacket> implements
         public void onReceive(Context context, Intent intent) {
 	
             Log.d(TAG, "Received Event" + intent.getAction());
-
+            aoapToastMessage("Received Event" + intent.getAction());
         	/* USB Permission message */
             if (actionUsbPermission.equals(intent.getAction())) { 
                 synchronized (this) {
                     usbAccessory = (UsbAccessory) intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
                     
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                    	havePermission = USB_PERMISSION_HAVE;
                         if (usbAccessory != null) {
                             openAccessory(usbAccessory);
                         }
                     } else {
                         Log.d(TAG, "permission denied for accessory " + usbAccessory);
                     }
-                    
-                    permissionRequestPending = false;
                 }
             }
             /* USB Disconnection message */
@@ -123,8 +172,15 @@ public class AoapConnection extends Connection<SessionPacket> implements
 				/* Precondition: Only one accessory can be connected with this device */
             	if (usbAccessory != null) 
 				{
-					// Fix: insert close flow
-				}           	
+					
+				} 
+            	havePermission = USB_PERMISSION_NO;
+            }
+            /* USB Disconnection message */
+            else if (UsbManager.ACTION_USB_ACCESSORY_ATTACHED.equals(intent.getAction()))
+            {
+        		if(setUSBDevice())
+        			openAccessory(usbAccessory);
             }
         }
     };    
@@ -150,6 +206,31 @@ public class AoapConnection extends Connection<SessionPacket> implements
 		
 	}
 
+	private boolean setUSBDevice()
+	{
+		
+		if(usbManager != null && appActivity != null && havePermission != USB_PERMISSION_HAVE)
+		{
+			/* Check access permission by application */
+			actionUsbPermission = appActivity.getPackageName() + ".USB_PERMISSION";
+			Intent startIntent = appActivity.getIntent(); 
+			usbAccessory = (UsbAccessory) startIntent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);	   
+			permissionIntent = PendingIntent.getBroadcast(appActivity, 0, new Intent(actionUsbPermission), 0);
+			
+			if(usbAccessory != null) {
+				if(!usbManager.hasPermission(usbAccessory))
+				{
+					usbManager.requestPermission(usbAccessory, permissionIntent);
+					havePermission = USB_PERMISSION_PENDING;
+					return false;
+				}
+				return true;
+			}
+		}
+	
+		return false;
+	}
+	
 	@Override
 	protected boolean openSocket(boolean reconnect) throws Exception {
 
@@ -166,32 +247,12 @@ public class AoapConnection extends Connection<SessionPacket> implements
 			return !reconnect;
 		}
 		
-		if(usbManager != null && appActivity != null && !reconnect )
-		{
-			/* Check access permission by application */
-			actionUsbPermission = appActivity.getPackageName() + ".action.USB_PERMISSION";
-			
-			Intent startIntent = appActivity.getIntent(); 
-			usbAccessory = (UsbAccessory) startIntent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);	        
-			openAccessory(usbAccessory); /* Host mode or open USB device */
-			
-			return true;
-		}
-		
-		usbAccessory = null;
-		return false;
+		return true;
 	}
 
 	@Override
 	protected void setupSocket() throws Exception {
-		
-		if(usbManager != null && appActivity != null)
-		{
-	       Log.d(TAG, "Setup Socket");
-			
-			IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-			appActivity.registerReceiver(usbReceiver, filter);
-		}
+
 	}
 
 	@Override

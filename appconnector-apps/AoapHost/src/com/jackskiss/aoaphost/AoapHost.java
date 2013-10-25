@@ -81,11 +81,28 @@ public class AoapHost extends Activity implements WebLinkHelper.WebLinkServerFac
 
 			@Override
 			public void onClick(View arg0) {
-				// TODO Auto-generated method stub				
+				// TODO Auto-generated method stub			
+
 				Intent intent = getIntent();	
-				UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+				UsbManager usbManager = (UsbManager)getSystemService(Context.USB_SERVICE);
+//				UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+				UsbDevice device;
 				
-				Toast.makeText(AoapHost.this, "USB PID:" + device.getProductId() + " USB VID:" + device.getVendorId(), Toast.LENGTH_LONG).show();
+		 		HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+				if(!deviceList.isEmpty()) {			
+					Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+					while(deviceIterator.hasNext()){
+						
+						device = deviceIterator.next();
+					    if(device != null)
+						{
+					    	Toast.makeText(AoapHost.this, "USB Class:" + device.getDeviceClass() + " USB VID:" + device.getVendorId(), Toast.LENGTH_LONG).show();
+					    	return;
+						}	
+					}				
+				}
+				
+				// Toast.makeText(AoapHost.this, "USB PID:" + device.getProductId() + " USB VID:" + device.getVendorId(), Toast.LENGTH_LONG).show();
 			}
 		
 		});
