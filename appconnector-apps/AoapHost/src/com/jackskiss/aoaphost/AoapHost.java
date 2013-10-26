@@ -25,13 +25,15 @@ import android.widget.Toast;
 import com.obigo.weblink.ImplWebLinkServer;
 import com.obigo.weblink.MainWebLinkListener;
 import com.obigo.weblink.RemoteWebLinkClient;
+import com.obigo.weblink.WebLink;
 import com.obigo.weblink.WebLinkHelper;
 import com.obigo.weblink.WebLinkServer;
 
 public class AoapHost extends Activity implements WebLinkHelper.WebLinkServerFactory {
 	
 	private final static String TAG = "AoapHost";
-		
+	ServerFactory listener;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -42,7 +44,7 @@ public class AoapHost extends Activity implements WebLinkHelper.WebLinkServerFac
 			// TODO Change to correct URI
 			String uri = "aoap://acc@100.100.100.100:1942";
 			
-			ServerFactory listener = WebLinkHelper.newListener( uri, null,
+			listener = WebLinkHelper.newListener( uri, null,
 				AoapHost.this );
 
 			// Start the Listener
@@ -107,6 +109,22 @@ public class AoapHost extends Activity implements WebLinkHelper.WebLinkServerFac
 		
 		});
 		
+		Button btnPlayback = (Button)findViewById(R.id.playback);
+		btnPlayback.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View arg0) {
+				
+				try {
+//					weblinkServer.remote_control(WebLink.RemoteControl.PLAY);
+//					listener.transportControl(, value);
+				} catch (Exception e) {
+					Log.d(TAG, "WebLink Exception:" + e);
+				}
+				
+			}
+		});
+		
 	}
 
 	@Override
@@ -120,6 +138,20 @@ public class AoapHost extends Activity implements WebLinkHelper.WebLinkServerFac
 	public WebLinkServer newWebLinkServer(RemoteWebLinkClient client)
 			throws Exception {
 		return new ImplWebLinkServer( client );
+	}
+
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		Intent intent = getIntent();	
+		UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+		if(device != null)
+		{
+	    	Toast.makeText(AoapHost.this, "USB Class:" + device.getDeviceClass() + " USB VID:" + device.getVendorId(), Toast.LENGTH_LONG).show();
+		}	
+		
+		super.onResume();
 	}
 
 }

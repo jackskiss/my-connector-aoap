@@ -20,14 +20,18 @@ import android.util.Log;
 public final class AudioDecoder {
 	
 	private static final String TAG = "AudioDecoder";
-	private static File fPath;
+	private static File currentFilePath;
 	
 	private MusicThread musicThread;
 	
-	private BlockingQueue<ByteArrayInputStream> audioBuffer = null;
+	private static BlockingQueue<ByteArrayInputStream> audioBuffer = null;
 	
 	private static final int AUDIO_BUFFER_NUM = 100;
 	
+	public AudioDecoder()
+	{
+		musicThread = new MusicThread();
+	}
 	
 	public void playback_media_content(File path)
 	{
@@ -35,7 +39,7 @@ public final class AudioDecoder {
 
 		if(path.isFile())
 		{
-			fPath = path;
+			currentFilePath = path;
 		}
 		
 		if(audioBuffer == null)
@@ -44,30 +48,35 @@ public final class AudioDecoder {
 	
 	private boolean checkNormalMedia(File path)
 	{
+		
 		return false; // 
 	}
 	
 	public void startMediaDecode(File path)
 	{
 		// Start Decoding Thread
-		musicThread = new MusicThread();
-		
+		musicThread.start();
 	}
 	
 	public void stopMediaDecode(File path)
 	{
-		// Start Decoding Thread	
+		// Start Decoding Thread
+		musicThread.setRunningState(false);
 	}
 	
 	/*
-	 * @buffer buffer to get the decoded data
-	 * @return decoded data size
+	 * @return Buffer
 	 */
-	public static int getDecodedBuffer(byte[] buffer)
+	public static ByteArrayInputStream getDecodedBuffer()
 	{
+		try {
+			return audioBuffer.take();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
 		
-		// Return decode data size
-		return 0;
 	}
 	
 

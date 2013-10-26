@@ -111,7 +111,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			permissionIntent = PendingIntent.getBroadcast(appActivity.getApplicationContext(), 0, new Intent(actionUsbPermission), 0);
 			
 			IntentFilter filter = new IntentFilter(actionUsbPermission);
-			
+
 			filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
 			filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
 			appActivity.registerReceiver(usbReceiver, filter);			
@@ -123,9 +123,13 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 
 			/* Initialize */
 			havePermission = USB_PERMISSION_NO;
+			isConnected = false;
 			
 			if(connectUsbDevice(usbManager, startIntent))
 				startService();;
+				
+				
+			
 		}
 	}
 	
@@ -244,10 +248,10 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 					
 					if (usbEndpointTx0 != null && usbEndpointRx0 != null)
 					{
-						// Fix: Use first bulk endpoints as control channel.
+						// Fix: Use first bulk Endpoints as control channel.
 						usbEndpointControlRx = usbEndpointRx0;
 						usbEndpointControlTx = usbEndpointTx0;						
-						/* Found out endpoints to communicate */
+						/* Found out Endpoints to communicate */
 						Log.d(TAG, "Found out Endpoint RX: " + usbEndpointControlRx.toString() + " TX: " + usbEndpointControlTx.toString());
 						aoapToastMessage("Foundout Endpoint RX/TX");
 						return true; 
@@ -417,10 +421,13 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 				 else 
                      Log.d(TAG, "permission denied for Hostmode ");				
             } else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
-            	connectUsbDevice(usbManager, intent);
+/*
+*				Remove to protect accessing repeatedly.
+*            	connectUsbDevice(usbManager, intent);
             	startService();
-			} else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(intent.getAction())) {
-				// Fix: Close usb connection 
+			
+*/            } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(intent.getAction())) {
+				// Fix: Close USB connection 
 				usbDeviceConnection.releaseInterface(usbInterface);
 				usbDeviceConnection.close();
 				havePermission = USB_PERMISSION_NO;
