@@ -1,5 +1,9 @@
 package com.jackskiss.aoapaccessory;
 
+import java.io.File;
+
+import org.apache.etch.util.core.io.AudioDecoder;
+
 import com.obigo.weblink.ImplWebLinkClient;
 import com.obigo.weblink.RemoteWebLinkServer;
 import com.obigo.weblink.WebLinkClient;
@@ -13,6 +17,7 @@ import android.content.Intent;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 public class AoapAccessory extends Activity implements WebLinkHelper.WebLinkClientFactory {
@@ -51,6 +56,19 @@ public class AoapAccessory extends Activity implements WebLinkHelper.WebLinkClie
 			}
 		});
 		
+		final AudioDecoder decoder = new AudioDecoder();
+		
+		Button btnAudioFile = (Button)findViewById(R.id.play);
+		btnAudioFile.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				EditText txt = (EditText)findViewById(R.id.filepath);
+				File fPath = new File(txt.getText().toString());
+				
+				decoder.playback_media_content(fPath);
+			}
+		});
 
 		// TODO Insert Your Code Here		
 		
