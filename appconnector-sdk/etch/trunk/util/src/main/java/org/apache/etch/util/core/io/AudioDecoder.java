@@ -119,7 +119,6 @@ public final class AudioDecoder {
 					while(true) {
 						
 					}
-					break;
 				case Constants.FILE_TYPE_MP3:
 					break;
 				case Constants.FILE_TYPE_OGG:
