@@ -32,17 +32,17 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>src/binding-java</name>
+			<name>binding-java</name>
 			<type>2</type>
 			<locationURI>PARENT-1-PROJECT_LOC/appconnector-sdk/etch/trunk/binding-java</locationURI>
 		</link>
 		<link>
-			<name>src/compiler</name>
+			<name>compiler</name>
 			<type>2</type>
 			<locationURI>PARENT-1-PROJECT_LOC/appconnector-sdk/etch/trunk/compiler</locationURI>
 		</link>
 		<link>
-			<name>src/util</name>
+			<name>util</name>
 			<type>2</type>
 			<locationURI>PARENT-1-PROJECT_LOC/appconnector-sdk/etch/trunk/util</locationURI>
 		</link>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry excluding="binding-java/compiler/src/main/java/|binding-java/runtime/src/main/java/|compiler/src/main/java/|util/src/main/java/|compiler/target/generated-sources/main/javacc/java/" including="*" kind="src" path="src"/>
-	<classpathentry kind="src" path="src/compiler/target/generated-sources/main/javacc/java"/>
-	<classpathentry kind="src" path="src/compiler/src/main/java"/>
-	<classpathentry kind="src" path="src/binding-java/compiler/src/main/java"/>
-	<classpathentry kind="src" path="src/binding-java/runtime/src/main/java"/>
-	<classpathentry kind="src" path="src/util/src/main/java"/>
+	<classpathentry kind="src" path="compiler/src/main/java"/>
+	<classpathentry kind="src" path="util/src/main/java"/>
+	<classpathentry kind="src" path="compiler/target/generated-sources/main/javacc"/>
+	<classpathentry kind="src" path="binding-java/runtime/src/main/java"/>
+	<classpathentry kind="src" path="binding-java/compiler/src/main/java"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
