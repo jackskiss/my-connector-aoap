@@ -20,13 +20,20 @@ import android.util.Log;
 public final class AudioDecoder {
 	
 	private static final String TAG = "AudioDecoder";
-	private static File currentFilePath;
+	private static File currentFile;
+	private static int curAudioFormat;
 	
 	private MusicThread musicThread;
 	
 	private static BlockingQueue<ByteArrayInputStream> audioBuffer = null;
 	
 	private static final int AUDIO_BUFFER_NUM = 100;
+	
+	private static final String AUDIO_FORMAT_WAV = ".wav";
+	private static final String AUDIO_FORMAT_MP3 = ".mp3";
+	private static final String AUDIO_FORMAT_OGG = ".ogg";
+	private static final String AUDIO_FORMAT_AAC = ".aac";
+	private static final String AUDIO_FORMAT_WMA = ".wma";
 	
 	public AudioDecoder()
 	{
@@ -39,7 +46,7 @@ public final class AudioDecoder {
 
 		if(path.isFile())
 		{
-			currentFilePath = path;
+			currentFile = path;
 		}
 		
 		if(audioBuffer == null)
@@ -92,6 +99,35 @@ public final class AudioDecoder {
 		}
 		
 		public void run() {
+			
+			if(currentFile != null) {
+				String audioFile = currentFile.getAbsolutePath();
+				if(audioFile.endsWith(AUDIO_FORMAT_WAV)) {
+					curAudioFormat = Constants.FILE_TYPE_MP3;					
+				} else if (audioFile.endsWith(AUDIO_FORMAT_MP3)) {
+					curAudioFormat = Constants.FILE_TYPE_MP3;
+					
+				} else if (audioFile.endsWith(AUDIO_FORMAT_OGG)) {
+					curAudioFormat = Constants.FILE_TYPE_OGG;
+				} else {
+					Log.d(TAG,"Not defined type");
+					return;
+				}
+				
+				switch(curAudioFormat) {
+				case Constants.FILE_TYPE_WAV:
+					while(true) {
+						
+					}
+					break;
+				case Constants.FILE_TYPE_MP3:
+					break;
+				case Constants.FILE_TYPE_OGG:
+				default: 
+					Log.d(TAG, "Not support file type");
+					return;
+				}
+			} 
  /*
 			int ret = 0;
     		int  bytesRead = 0;
