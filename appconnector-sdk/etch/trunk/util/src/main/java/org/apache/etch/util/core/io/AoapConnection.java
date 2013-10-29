@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.etch.util.FlexBuffer;
@@ -42,13 +43,17 @@ public class AoapConnection extends Connection<SessionPacket> implements
 
 	private static final int USB_PERMISSION_NO = 0;
 	private static final int USB_PERMISSION_PENDING = 1;	
-	private static final int USB_PERMISSION_HAVE = 1;	
+	private static final int USB_PERMISSION_HAVE = 1;
 	private int havePermission = USB_PERMISSION_NO;
 	private PendingIntent permissionIntent;
 	
-    private BlockingQueue<FlexBuffer> readQueue;
+    private BlockingQueue<ByteBuffer> readQueues;
     
 	private static final int READ_BYTE_BUFFER_SIZE = 16384; // Fix: Need to adjust particular this
+	
+	private AoapPacketizer aoapPacket;
+	
+	private usbPacketTransmitThread usbPacketDemon;
 
 	public AoapConnection(Activity app, UsbManager um, AoapListener listener) {
 		
@@ -65,7 +70,7 @@ public class AoapConnection extends Connection<SessionPacket> implements
 		usbManager = um;
 		appActivity = app;	
 		this.listener = listener;
-		readQueue = listener.allocReadQueue();
+		readQueues = listener.allocReadQueue();
 
 	}
 
@@ -93,6 +98,10 @@ public class AoapConnection extends Connection<SessionPacket> implements
 		
 		if(setUSBDevice())
 			openAccessory(usbAccessory);
+		
+		
+		usbPacketDemon = new usbPacketTransmitThread();
+		usbPacketDemon.start();
 		
 	}
 
@@ -241,8 +250,8 @@ public class AoapConnection extends Connection<SessionPacket> implements
 
 		if (listener != null)
 		{
-			if (!reconnect && readQueue == null)
-				readQueue = listener.allocReadQueue();
+			if (!reconnect && readQueues == null)
+				readQueues = listener.allocReadQueue();
 
 			return !reconnect;
 		}
@@ -259,35 +268,73 @@ public class AoapConnection extends Connection<SessionPacket> implements
 	protected void readSocket() throws Exception {
 		// Fix: Read buffer
 		
-		FlexBuffer flexBuffer = null;
+		FlexBuffer flexBuffer = new FlexBuffer();
         int ret = 0;
-        
-        byte[] buffer = new byte[READ_BYTE_BUFFER_SIZE];
         
         while (isStarted())
         {  
-        	if(readQueue != null)
+        	if(readQueues != null)
         	{
-        		flexBuffer = readQueue.take();
+        		flexBuffer.get(readQueues.take().array());
         	}
         	else
         	{
-        		ret = inputStream.read(buffer);
-        		if(ret > 0) {
-        			flexBuffer = new FlexBuffer(buffer);
-        			flexBuffer.setIndex(0);
-        			flexBuffer.setLength(buffer.length);
-        		}
-        			
+        		ByteBuffer buf;
+        		
+				try {
+					buf = readPacket();
+					if(buf != null) {
+	        			flexBuffer = new FlexBuffer(buf.array());
+	        			flexBuffer.setIndex(0);
+	        			flexBuffer.setLength(buf.position());
+	        		}
+				} catch (Throwable e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
         	}
- 	        
         	// Send Message
 	        session.sessionPacket(null, flexBuffer);
 	        Log.d(TAG,"Received packet length" + flexBuffer.length());
         }
-        
 	}
-
+	
+	private ByteBuffer readPacket() throws Throwable
+	{
+		int ret = 0;
+		
+		ByteBuffer srcBuffer = ByteBuffer.allocate(READ_BYTE_BUFFER_SIZE);
+		
+		ret = inputStream.read(srcBuffer.array());
+	
+		Log.d(TAG,"Received Packet" + ret);
+		
+		if(ret > 0) {
+			
+			ByteBuffer dstBuffer = ByteBuffer.allocate(ret - AoapPacketizer.AOAP_PACKET_HEADER_LENGTH);
+			
+			byte type = aoapPacket.getAoapPacketType(srcBuffer);
+			if(aoapPacket.checkAoapPacket(srcBuffer)) {
+				if(aoapPacket.aoapUnPacket(type, srcBuffer, dstBuffer) > 0) {
+					switch(type) {
+					case AoapPacketizer.AOAP_ETCH_PACKET:
+						// Input Etch Buffer
+						readQueues.put(dstBuffer);
+						return dstBuffer;
+					default: 
+						break;
+					}
+				}
+				
+			} else {
+				Log.d(TAG, "Received broken packet");
+			}
+		}
+	
+		return null;
+		
+	}
+	
 	@Override
 	public void close(boolean reset) throws Exception {
 		if(usbReceiver != null && appActivity != null)
@@ -305,5 +352,35 @@ public class AoapConnection extends Connection<SessionPacket> implements
 		// TODO Auto-generated method stub
 		return null;
 	}
-
+	
+	public class usbPacketTransmitThread extends Thread {
+		
+		int ret = 0;
+		
+		public void run() {			
+			ByteBuffer srcBuf = AudioDecoder.getDecodedBuffer();
+			AoapPacketizer aoapPacket = new AoapPacketizer();
+			
+			if(srcBuf != null) {
+				ByteBuffer dstBuf = ByteBuffer.allocate(srcBuf.position() + AoapPacketizer.AOAP_PACKET_HEADER_LENGTH);
+				ret = aoapPacket.aoapSetPacket((byte) AoapPacketizer.AOAP_AUDIO_PACKET, srcBuf, dstBuf);
+				if(ret > 0) {
+					try {
+						Log.d(TAG, "Transport packet buffer length:" + dstBuf.position());
+						outputStream.write(dstBuf.array());
+						
+						try {
+							sleep(100);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+				    } catch (IOException e) {
+				        Log.e(TAG, "write failed", e);
+				    }
+				}
+			}
+		}	
+	}
+ 
 }

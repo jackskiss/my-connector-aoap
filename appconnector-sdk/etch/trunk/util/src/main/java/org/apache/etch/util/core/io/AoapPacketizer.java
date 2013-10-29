@@ -4,24 +4,25 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.zip.CRC32;
 
+import android.util.Log;
+
 public class AoapPacketizer {
 	private static final String TAG = "AoapPacketizer";
 	
-	private static final int AOAP_AUDIO_PACKET 	= 1;
-	private static final int AOAP_ETCH_PACKET 	= 2;	
+	public static final int AOAP_AUDIO_PACKET 	= 1;
+	public static final int AOAP_ETCH_PACKET 	= 2;	
 
 	private static final byte[] AOAP_PREAMBLE = { 'O', 'B', 'G', 'P', 'K', 'T'};
 	
-	private static final int AOAP_PACKET_PREAMBLE_SIZE = 6;
-	private static final int AOAP_PACKET_TYPE_POS = AOAP_PACKET_PREAMBLE_SIZE;
-	private static final int AOAP_PACKET_TYPE_SIZE = 1;	
-	private static final int AOAP_PACKET_LENGTH_POS = AOAP_PACKET_TYPE_POS + AOAP_PACKET_TYPE_SIZE;
-	private static final int AOAP_PACKET_LENGTH_SIZE = 4;
-	private static final int AOAP_PACKET_CRC_POS = AOAP_PACKET_LENGTH_POS + AOAP_PACKET_LENGTH_SIZE;
-	private static final int AOAP_PACKET_CRC_SIZE = 8;
-	private static final int AOAP_PACKET_HEADER_LENGTH = AOAP_PACKET_CRC_POS + AOAP_PACKET_CRC_SIZE;
-	private static final int AOAP_PACKET_DATA_POS = AOAP_PACKET_HEADER_LENGTH;
-	
+	public static final int AOAP_PACKET_PREAMBLE_SIZE = 6;
+	public static final int AOAP_PACKET_TYPE_POS = AOAP_PACKET_PREAMBLE_SIZE;
+	public static final int AOAP_PACKET_TYPE_SIZE = 1;	
+	public static final int AOAP_PACKET_LENGTH_POS = AOAP_PACKET_TYPE_POS + AOAP_PACKET_TYPE_SIZE;
+	public static final int AOAP_PACKET_LENGTH_SIZE = 4;
+	public static final int AOAP_PACKET_CRC_POS = AOAP_PACKET_LENGTH_POS + AOAP_PACKET_LENGTH_SIZE;
+	public static final int AOAP_PACKET_CRC_SIZE = 8;
+	public static final int AOAP_PACKET_HEADER_LENGTH = AOAP_PACKET_CRC_POS + AOAP_PACKET_CRC_SIZE;
+	public static final int AOAP_PACKET_DATA_POS = AOAP_PACKET_HEADER_LENGTH;
 	
 // ============================================================================
 //	//- AOAP PACKET FORMAT 2013.10.28 -//

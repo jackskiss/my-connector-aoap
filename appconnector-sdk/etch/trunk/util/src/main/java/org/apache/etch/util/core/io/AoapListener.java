@@ -3,6 +3,7 @@ package org.apache.etch.util.core.io;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -23,6 +24,9 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -59,26 +63,26 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	private static final int USB_PERMISSION_HAVE = 1;	
 	private int havePermission = USB_PERMISSION_NO;
 	
-//	private static final int USB_VENDORID_GOOGLE =		0x18D1;
-//	private static final int USB_VENDORID_MOTOROLA =	0x22B8;
-//	private static final int USB_VENDORID_SAMSUNG =		0x04E8;
-//	private static final int USB_VENDORID_LG = 			0x1004;
-//	private static final int USB_VENDORID_SHARP = 		0x04DD;
-//	private static final int USB_VENDORID_LENOVO = 		0x17EF;
+	private static final int USB_VENDORID_GOOGLE =				0x18D1;
+	private static final int USB_VENDORID_MOTOROLA =				0x22B8;
+	private static final int USB_VENDORID_SAMSUNG =				0x04E8;
+	private static final int USB_VENDORID_LG = 					0x1004;
+	private static final int USB_VENDORID_SHARP = 				0x04DD;
+	private static final int USB_VENDORID_LENOVO = 				0x17EF;
 
 	/* AOA 1.0 */
-	private static final int USB_PRODUCTID_ACCESSORY = 				0x2D00;
-	private static final int USB_PRODUCTID_ACCESSORY_ADB = 			0x2D01;
+	private static final int USB_PRODUCTID_ACCESSORY = 			0x2D00;
+	private static final int USB_PRODUCTID_ACCESSORY_ADB = 		0x2D01;
 	/* AOA 2.0 */
-	private static final int USB_PRODUCTID_AUDIO = 					0x2D02;
-	private static final int USB_PRODUCTID_AUDIO_ADB = 				0x2D03;
+	private static final int USB_PRODUCTID_AUDIO = 				0x2D02;
+	private static final int USB_PRODUCTID_AUDIO_ADB = 			0x2D03;
 	private static final int USB_PRODUCTID_ACCESSORY_AUDIO = 		0x2D04;
 	private static final int USB_PRODUCTID_ACCESSORY_AUDIO_ADB = 	0x2D05;
 
-	private static final int AOAP_GET_PROTOCOL = 51;
-	private static final int AOAP_SEND_STRING = 52;
-	private static final int AOAP_START_ACCESSORY = 53;
-	private static final int AOAP_SUPPORT_AUDIO = 58;
+	private static final int AOAP_GET_PROTOCOL = 		51;
+	private static final int AOAP_SEND_STRING = 		52;
+	private static final int AOAP_START_ACCESSORY = 	53;
+	private static final int AOAP_SUPPORT_AUDIO = 	58;
 	
 	private static final int AOAP_STRING_MANUFACTURER = 0;
 	private static final int AOAP_STRING_MODEL = 1;
@@ -92,9 +96,15 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	private static final int READ_QUEUE_SIZE = 100; // Fix: Need to adjust particular this
 	private static final int READ_BYTE_BUFFER_SIZE = 16384; // Fix: Need to adjust particular this
 	
-	private BlockingQueue<FlexBuffer> readQueues = null;
+	private BlockingQueue<ByteBuffer> readQueues = null;
+	private AoapPacketizer aoapPacket;
 	
-		
+	/*SS - AOAP 1.0 SPECIFIED PROTOCOL FOR AUDIO STREAM - SS*/
+	private BlockingQueue<ByteBuffer> readStreamQueues = null;
+	private hostAudioDemonThread hostAudioDemon;
+
+	/*EE - AOAP 1.0 SPECIFIED PROTOCOL FOR AUDIO STREAM - EE*/
+	
 	public AoapListener (Activity app, UsbManager um)
 	{
 		
@@ -118,18 +128,18 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			
 //			usbHostDemon = new hostUSBDemonThread();
 //			usbHostDemon.start();
-
 			Intent startIntent = appActivity.getIntent();
 
 			/* Initialize */
 			havePermission = USB_PERMISSION_NO;
 			isConnected = false;
+			aoapPacket = new AoapPacketizer();
+			
+			// For Audio Stream
+			audioStreamingInit();
 			
 			if(connectUsbDevice(usbManager, startIntent))
 				startService();;
-				
-				
-			
 		}
 	}
 	
@@ -141,6 +151,13 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			}
 		}
 	};
+	
+	private void audioStreamingInit()
+	{
+		readStreamQueues = new ArrayBlockingQueue<ByteBuffer>(READ_QUEUE_SIZE);
+		if(hostAudioDemon == null)
+			hostAudioDemon = new hostAudioDemonThread();
+	}
 	
 	private final static int TOAST_MESSAGE = 1;
 	
@@ -159,17 +176,19 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	public void finalize()
 	{
 		usbHostDemon.stop();
+		hostAudioDemon.setAudioThreadState(false);
+		hostAudioDemon.stop();
 	}
 
-	public BlockingQueue<FlexBuffer> allocReadQueue()
+	public BlockingQueue<ByteBuffer> allocReadQueue()
 	{				
        Log.d(TAG, "allocReadQueue");
 		
-		readQueues = new ArrayBlockingQueue<FlexBuffer>(READ_QUEUE_SIZE);
+		readQueues = new ArrayBlockingQueue<ByteBuffer>(READ_QUEUE_SIZE);
 		return readQueues;
 	}
 
-	private FlexBuffer getReadQueue()
+	private ByteBuffer getReadQueue()
 	{
 		try {
 	       Log.d(TAG, "getReadQueue");
@@ -263,6 +282,40 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		Log.d(TAG, "Not found an Endpoint");
 		
 		return false;
+	}
+	
+	private class hostAudioDemonThread extends Thread {
+		int sampleRate = 44100;
+		int channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
+		int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
+		int bufferSize = 0;
+		private boolean isAudioStreaming = false;
+		
+		public void run() {
+			// Fix: sampleRate, channelConfig, audioFormat must get from audio information.
+			bufferSize = AudioTrack.getMinBufferSize(sampleRate, channelConfig, audioFormat);
+			Log.d(TAG, "Initial buffer size is " + bufferSize);
+			AudioTrack track = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate, 
+												channelConfig, audioFormat, 4*bufferSize, AudioTrack.MODE_STREAM);
+			do {
+				try {
+					ByteBuffer buffer = readStreamQueues.take();
+					track.write(buffer.array(), 0, buffer.position());
+					track.play();
+					sleep(200);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} while (isAudioStreaming);
+			track.flush();
+			track.stop();
+		}
+		
+		public void setAudioThreadState(boolean set)
+		{
+			isAudioStreaming = set;
+		}
 	}
 	
 	private class hostUSBDemonThread extends Thread {
@@ -374,10 +427,13 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			Log.d(TAG, "USB Device protocol is " + getProto);
 		
 		if (getProto < 1) {
-			Log.d(TAG, "AOAP supports protocol 1 or 2");
+			Log.d(TAG, "AOAP should supports protocol 1 or 2");
 			return;
 		}
-				
+		
+		// Audio Stream
+		hostAudioDemon.start();
+		
 		/* Send information of USB Accessory */											
 		usbDeviceConnection.controlTransfer(UsbConstants.USB_DIR_OUT|UsbConstants.USB_TYPE_VENDOR, 
 											AOAP_SEND_STRING, 0, AOAP_STRING_MANUFACTURER, manufacturer.getBytes(), manufacturer.length(), 0);
@@ -444,10 +500,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 
 	@Override
 	protected void readSocket() throws Exception {
-
-		int ret = 0;
-		byte[] buffer = new byte[READ_BYTE_BUFFER_SIZE];
-				
+		
 		while(isStarted())
 		{				
 			if( !isConnected ) {
@@ -455,15 +508,54 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 				session.sessionAccepted(usbManager);				
 			}
 			
-			ret = usbDeviceConnection.bulkTransfer(usbEndpointControlRx, buffer, buffer.length, 500);
-			
-			if( ret > 0 ) {
-				readQueues.put( new FlexBuffer(buffer) );
-				Log.d(TAG,"Received Packet" + ret); // input Queue;
+			try {
+				readPacket();
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 	}
 
+	private void readPacket() throws Throwable
+	{
+		int ret = 0;
+		
+		ByteBuffer srcBuffer = ByteBuffer.allocate(READ_BYTE_BUFFER_SIZE);
+		
+		ret = usbDeviceConnection.bulkTransfer(usbEndpointControlRx, srcBuffer.array(), srcBuffer.array().length, 500);;
+	
+		Log.d(TAG,"Received Packet" + ret);
+		
+		if(ret > 0) {
+			
+			ByteBuffer dstBuffer = ByteBuffer.allocate(ret - AoapPacketizer.AOAP_PACKET_HEADER_LENGTH);
+			
+			byte type = aoapPacket.getAoapPacketType(srcBuffer);
+			if(aoapPacket.checkAoapPacket(srcBuffer)) {
+				if(aoapPacket.aoapUnPacket(type, srcBuffer, dstBuffer) > 0) {
+					switch(type) {
+					case AoapPacketizer.AOAP_AUDIO_PACKET:
+						// Input Audio Buffer
+						readStreamQueues.put(dstBuffer);
+						break;
+					case AoapPacketizer.AOAP_ETCH_PACKET:
+						// Input Etch Buffer
+						readQueues.put(dstBuffer);
+						break;
+					default: 
+						break;
+					}
+				}
+				
+			} else {
+				Log.d(TAG, "Received broken packet");
+			}
+		}
+		
+	}
+	
+	
 	@Override
 	public void close(boolean reset) throws Exception {
 		// TODO Auto-generated method stub
