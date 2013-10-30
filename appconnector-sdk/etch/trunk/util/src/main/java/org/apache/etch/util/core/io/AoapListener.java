@@ -116,8 +116,6 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			actionUsbPermission = appActivity.getPackageName() + ".USB_PERMISSION";
 			
 			Log.d(TAG, "AoapListener Creation:" + actionUsbPermission);
-			
-			aoapToastMessage("AoapListener Creation:" + actionUsbPermission);
 			permissionIntent = PendingIntent.getBroadcast(appActivity.getApplicationContext(), 0, new Intent(actionUsbPermission), 0);
 			
 			IntentFilter filter = new IntentFilter(actionUsbPermission);
@@ -126,8 +124,8 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
 			appActivity.registerReceiver(usbReceiver, filter);			
 			
-//			usbHostDemon = new hostUSBDemonThread();
-//			usbHostDemon.start();
+			//usbHostDemon = new hostUSBDemonThread();
+			//usbHostDemon.start();
 			Intent startIntent = appActivity.getIntent();
 
 			/* Initialize */
@@ -138,8 +136,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			// For Audio Stream
 			audioStreamingInit();
 			
-			if(connectUsbDevice(usbManager, startIntent))
-				startService();;
+			connectUsbDevice(usbManager, startIntent);
 		}
 	}
 	
@@ -152,6 +149,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		}
 	};
 	
+
 	private void audioStreamingInit()
 	{
 		readStreamQueues = new ArrayBlockingQueue<ByteBuffer>(READ_QUEUE_SIZE);
@@ -175,9 +173,16 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	@SuppressWarnings("deprecation")
 	public void finalize()
 	{
-		usbHostDemon.stop();
-		hostAudioDemon.setAudioThreadState(false);
-		hostAudioDemon.stop();
+		if(usbHostDemon != null)
+			usbHostDemon.stop();
+		
+		if(hostAudioDemon != null) {
+			hostAudioDemon.setAudioThreadState(false);
+			hostAudioDemon.stop();
+		}
+		
+		if(usbReceiver != null && appActivity != null)
+			appActivity.unregisterReceiver (usbReceiver);
 	}
 
 	public BlockingQueue<ByteBuffer> allocReadQueue()
@@ -208,8 +213,6 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	private boolean usbVidPidChecker(int vid, int pid)
 	{
         Log.d(TAG, "VID PID Check Vid: " + vid + " Pid: " + pid);
-
-        aoapToastMessage("VID PID Check Vid: " + vid + " Pid: " + pid);
 		
 		if( pid != USB_PRODUCTID_ACCESSORY 
 		 || pid != USB_PRODUCTID_ACCESSORY_ADB
@@ -240,12 +243,19 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		Log.d(TAG, "scanEndpoint");
 //		Toast.makeText(appActivity,  "scanEndpoint" , Toast.LENGTH_SHORT).show();
 		aoapToastMessage("scanEndpoint");
+		usbInterface = null; //
+		
 		for (int idx=0; idx<infCount; idx++)
 		{
 			tempInterface = usbDevice.getInterface(idx);
 			
 			/* Assign endpoints for bulk transfer */
 			if(tempInterface.getInterfaceClass() == UsbConstants.USB_CLASS_VENDOR_SPEC ) {
+				if(usbInterface == null)
+				{
+					usbInterface = tempInterface;
+					openUsbDeviceConnection(usbInterface);
+				}
 				endCount = tempInterface.getEndpointCount();
 				if(endCount >= USB_XBULK_ENDPOINT_NEEDED_NUM) { // Should be #2 more.
 					for(int jdx=0; jdx<endCount; jdx++) {
@@ -326,6 +336,18 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		public void run() {
 			while(isRunning) {
 				if(usbManager != null) {
+					
+					usbDevice = (UsbDevice) appActivity.getIntent().getParcelableExtra(UsbManager.EXTRA_DEVICE);
+					
+					if(usbDevice != null)
+					{
+						vendorID = usbDevice.getVendorId();
+						productID = usbDevice.getProductId();
+						Log.d(TAG, "Vendor ID: " + vendorID + " Product ID: " + productID);
+						aoapToastMessage("Vendor ID: " + vendorID + " Product ID: " + productID);
+					}					
+					
+/*					
 					if(setUsbDevice(appActivity.getIntent())) {
 						if(!isConnected) {
 							isConnected = true;
@@ -344,12 +366,12 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 							Log.d(TAG, "USB device Disconneced in Thread");
 						}
 					}
+*/
 				}
 				
 				try {
 					sleep(1000);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -358,31 +380,32 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	
 	private synchronized boolean setUsbDevice(Intent intent)
 	{
-		usbDevice = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+		usbDevice = null;
 		
-		if(usbDevice != null)
+		for(UsbDevice dev : usbManager.getDeviceList().values())
 		{
-			vendorID = usbDevice.getVendorId();
-			productID = usbDevice.getProductId();
+			if(usbVidPidChecker(dev.getVendorId(), dev.getProductId()))
+			{
+				usbDevice = dev;
+				break;
+			}
+		}
+		
+		if(usbDevice == null)
+		{
+			usbDevice = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+			if(usbDevice != null) {
+				vendorID = usbDevice.getVendorId();
+				productID = usbDevice.getProductId();
+			}
+		}
+
+		if(usbDevice != null) {
+			Log.d(TAG, "Vendor ID: " + usbDevice.getVendorId() + " Product ID: " + usbDevice.getProductId());
+			aoapToastMessage("Vendor ID: " + usbDevice.getVendorId() + " Product ID: " + usbDevice.getProductId());
 			return true;
 		}
-		
 
-/* 		HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
-		if(!deviceList.isEmpty()) {			
-			Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
-			while(deviceIterator.hasNext()){
-				
-			    usbDevice = deviceIterator.next();
-			    if(usbDevice != null)
-				{
-					vendorID = usbDevice.getVendorId();
-					productID = usbDevice.getProductId();
-					return true;
-				}	
-			}				
-		}
-*/
 		Log.d(TAG, "setUsbDevice: Cannot get usbDevice instance");
 		return false;
 	}
@@ -390,35 +413,69 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	private boolean connectUsbDevice(UsbManager um, Intent intent)
 	{
 		Log.d(TAG, "Connecting USB device");
-    	aoapToastMessage( "Connecting USB device");
-    	
-		if((havePermission != USB_PERMISSION_HAVE) && setUsbDevice(intent) && scanEndpoint(usbDevice)) {
-			usbInterface = usbDevice.getInterface(USB_DEFAULT_CONTROL_INTERFACE);
-			if(usbInterface != null) {
-				if(!usbManager.hasPermission(usbDevice))
+	
+		if(havePermission == USB_PERMISSION_NO)
+		{
+			if(setUsbDevice(intent))
+			{
+				usbManager.requestPermission(usbDevice, permissionIntent);
+				havePermission = USB_PERMISSION_PENDING;
+				Log.d(TAG,"connectUsbDevice: Request Permission");
+				return true;
+			}	
+		} else if (havePermission == USB_PERMISSION_HAVE) {			
+			// If this state is Google Mode 
+			if(usbVidPidChecker(vendorID, productID)) {
+				if(scanEndpoint(usbDevice))
 				{
-					usbManager.requestPermission(usbDevice, permissionIntent);
-					havePermission = USB_PERMISSION_PENDING;
-					Log.d(TAG,"connectUsbDevice: Request Permission");
-					return false;
-				}
-				
-				usbDeviceConnection = um.openDevice(usbDevice);		
-				if(usbDeviceConnection != null){
-					usbDeviceConnection.claimInterface(usbInterface, true); /* Use interface exclusive */
+					// Audio Stream
+					hostAudioDemon.start();
 					return true;
 				}
+			} else {
+				startAccessoryService();
+				havePermission = USB_PERMISSION_NO;
 			}
-		} 
+			
+		}
 		
 		Log.d(TAG,"connectUsbDevice: No connect yet");
-		
-		return false;
+		return false;	
 	}
 
-	private void startService()
+	private boolean openUsbDeviceConnection(UsbInterface usbinf)
+	{	
+		if(usbDeviceConnection != null) 
+		{
+			usbDeviceConnection.releaseInterface(usbInterface);
+			usbDeviceConnection.close();
+		}
+			
+		usbDeviceConnection = usbManager.openDevice(usbDevice);		
+		
+		if(usbDeviceConnection == null)
+		{
+			Log.d(TAG,"connectUsbDevice: usbDeviceConnection is null");
+			return false;
+		}		
+		usbDeviceConnection.claimInterface(usbinf, true); /* Use interface exclusive */
+		return true;
+	}
+	
+	private void startAccessoryService()
 	{
 		byte[] protocol = new byte[2];
+		
+		if(usbDevice == null)
+			return;
+		
+		usbInterface = usbDevice.getInterface(USB_DEFAULT_CONTROL_INTERFACE);
+		
+		if(!openUsbDeviceConnection(usbInterface))
+		{
+			Log.d(TAG, "Fail to open openUsbDeviceConnection");
+			return;			
+		}
 		
 		usbDeviceConnection.controlTransfer(UsbConstants.USB_DIR_IN|UsbConstants.USB_TYPE_VENDOR,
 											AOAP_GET_PROTOCOL, 0, 0, protocol, 2, 0);
@@ -431,9 +488,6 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			return;
 		}
 		
-		// Audio Stream
-		hostAudioDemon.start();
-		
 		/* Send information of USB Accessory */											
 		usbDeviceConnection.controlTransfer(UsbConstants.USB_DIR_OUT|UsbConstants.USB_TYPE_VENDOR, 
 											AOAP_SEND_STRING, 0, AOAP_STRING_MANUFACTURER, manufacturer.getBytes(), manufacturer.length(), 0);
@@ -444,8 +498,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 											AOAP_START_ACCESSORY, 0, 0, null, 0, 0);
 		
 		isConnected = true;
-		Log.d(TAG,"startService: Connnect Accessory Protocol");
-
+		Log.d(TAG,"startService: Connnect Accessory Protocol");		
 	}
 	
 	
@@ -468,7 +521,6 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	                        {
 	                        	havePermission = USB_PERMISSION_HAVE;
 	                        	if(connectUsbDevice(usbManager, intent)) {
-	                        		startService();	                        	
 	                        		Log.d(TAG, "permission granted ");
 	                        	}
 	                        }
@@ -477,19 +529,17 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 				 else 
                      Log.d(TAG, "permission denied for Hostmode ");				
             } else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
-/*
-*				Remove to protect accessing repeatedly.
-*            	connectUsbDevice(usbManager, intent);
-            	startService();
-			
-*/            } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(intent.getAction())) {
-				// Fix: Close USB connection 
+            	havePermission = USB_PERMISSION_NO;
+            	if(connectUsbDevice(usbManager, intent)) {
+            		Log.d(TAG, "Device attaced and ");
+            	}
+            } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(intent.getAction())) {
+            	 // Fix: Close USB connection 
 				usbDeviceConnection.releaseInterface(usbInterface);
 				usbDeviceConnection.close();
 				havePermission = USB_PERMISSION_NO;
 				isConnected = false;
-				
-			}
+            }
 		}
 	};
 	
@@ -525,9 +575,8 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		
 		ret = usbDeviceConnection.bulkTransfer(usbEndpointControlRx, srcBuffer.array(), srcBuffer.array().length, 500);;
 	
-		Log.d(TAG,"Received Packet" + ret);
-		
 		if(ret > 0) {
+			Log.d(TAG,"Received Packet" + ret);
 			
 			ByteBuffer dstBuffer = ByteBuffer.allocate(ret - AoapPacketizer.AOAP_PACKET_HEADER_LENGTH);
 			
@@ -552,10 +601,15 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 				Log.d(TAG, "Received broken packet");
 			}
 		}
-		
+		sleep(200);
 	}
 	
 	
+	private void sleep(int i) {
+		// TODO Auto-generated method stub
+		
+	}
+
 	@Override
 	public void close(boolean reset) throws Exception {
 		// TODO Auto-generated method stub

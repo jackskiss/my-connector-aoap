@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.etch.util.FlexBuffer;
@@ -48,7 +49,9 @@ public class AoapConnection extends Connection<SessionPacket> implements
 	private PendingIntent permissionIntent;
 	
     private BlockingQueue<ByteBuffer> readQueues;
+    private BlockingQueue<ByteBuffer> sendQueues;
     
+    private static final int SEND_QUEUE_SIZE = 100; // Fix: Need to adjust particular this
 	private static final int READ_BYTE_BUFFER_SIZE = 16384; // Fix: Need to adjust particular this
 	
 	private AoapPacketizer aoapPacket;
@@ -71,7 +74,6 @@ public class AoapConnection extends Connection<SessionPacket> implements
 		appActivity = app;	
 		this.listener = listener;
 		readQueues = listener.allocReadQueue();
-
 	}
 
 	public AoapConnection(Activity app, UsbManager um ) {
@@ -91,6 +93,7 @@ public class AoapConnection extends Connection<SessionPacket> implements
 		
 		/* Initialize */
 		havePermission = USB_PERMISSION_NO;
+		sendQueues = new ArrayBlockingQueue<ByteBuffer>(SEND_QUEUE_SIZE);
 				
 		IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
 		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
@@ -202,17 +205,13 @@ public class AoapConnection extends Connection<SessionPacket> implements
 
 	@Override
 	public void transportPacket(Who recipient, FlexBuffer buf) throws Exception {
-
-		if(outputStream != null)
-		{
-			try {
-		       Log.d(TAG, "Transport packet buffer length:" + buf.length());
-	            outputStream.write(buf.getBuf());
-	        } catch (IOException e) {
-	            Log.e(TAG, "write failed", e);
-	        }
-		}
 		
+		if(buf.length() > 0) {
+			Log.d(TAG, "transporPacket buf length: " + buf.getBuf().length);
+			ByteBuffer sendBuf = ByteBuffer.allocate(buf.getBuf().length);
+			sendBuf.put(buf.getBuf());
+			sendQueues.put(sendBuf);
+		}		
 	}
 
 	private boolean setUSBDevice()
@@ -303,8 +302,11 @@ public class AoapConnection extends Connection<SessionPacket> implements
 	{
 		int ret = 0;
 		
-		ByteBuffer srcBuffer = ByteBuffer.allocate(READ_BYTE_BUFFER_SIZE);
-		
+		if(inputStream == null)
+			return null;
+
+		ByteBuffer srcBuffer = ByteBuffer.allocate(READ_BYTE_BUFFER_SIZE);		
+
 		ret = inputStream.read(srcBuffer.array());
 	
 		Log.d(TAG,"Received Packet" + ret);
@@ -356,30 +358,59 @@ public class AoapConnection extends Connection<SessionPacket> implements
 	public class usbPacketTransmitThread extends Thread {
 		
 		int ret = 0;
+		AoapPacketizer aoapPacket = new AoapPacketizer();
+		ByteBuffer srcBuf;
+		ByteBuffer dstBuf;
 		
-		public void run() {			
-			ByteBuffer srcBuf = AudioDecoder.getDecodedBuffer();
-			AoapPacketizer aoapPacket = new AoapPacketizer();
+		public void run() {	
 			
-			if(srcBuf != null) {
-				ByteBuffer dstBuf = ByteBuffer.allocate(srcBuf.position() + AoapPacketizer.AOAP_PACKET_HEADER_LENGTH);
-				ret = aoapPacket.aoapSetPacket((byte) AoapPacketizer.AOAP_AUDIO_PACKET, srcBuf, dstBuf);
-				if(ret > 0) {
-					try {
-						Log.d(TAG, "Transport packet buffer length:" + dstBuf.position());
-						outputStream.write(dstBuf.array());
-						
+			do {
+				
+				ByteBuffer srcBuf = AudioDecoder.getDecodedBuffer();
+			
+				if(srcBuf != null) {
+					dstBuf = ByteBuffer.allocate(srcBuf.position() + AoapPacketizer.AOAP_PACKET_HEADER_LENGTH);
+					ret = aoapPacket.aoapSetPacket((byte) AoapPacketizer.AOAP_AUDIO_PACKET, srcBuf, dstBuf);
+					if(ret > 0) {
 						try {
-							sleep(100);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-				    } catch (IOException e) {
-				        Log.e(TAG, "write failed", e);
-				    }
+							Log.d(TAG, "Transport Audio packet buffer length:" + dstBuf.position());
+							outputStream.write(dstBuf.array());
+							
+					    } catch (IOException e) {
+					        Log.e(TAG, "write failed", e);
+					    }
+					}
 				}
-			}
+				
+				try {
+					srcBuf = sendQueues.take();
+					
+					if(srcBuf != null) {
+						dstBuf = ByteBuffer.allocate(srcBuf.position() + AoapPacketizer.AOAP_PACKET_HEADER_LENGTH);
+						ret = aoapPacket.aoapSetPacket((byte) AoapPacketizer.AOAP_ETCH_PACKET, srcBuf, dstBuf);
+						if(ret > 0) {
+							try {
+								Log.d(TAG, "Transport ETCH packet buffer length:" + dstBuf.position());
+								outputStream.write(dstBuf.array());
+								
+						    } catch (IOException e) {
+						        Log.e(TAG, "write failed", e);
+						    }
+						}
+					}
+					
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
+				try {
+					sleep(200);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} while(true);
 		}	
 	}
  

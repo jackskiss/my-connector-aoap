@@ -97,13 +97,14 @@ public final class AudioDecoder {
 	public static ByteBuffer getDecodedBuffer()
 	{
 		try {
-			return audioBuffer.take();
+			if(audioBuffer != null)
+				return audioBuffer.take();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}
-		
+		return null;
 	}
 	
 
