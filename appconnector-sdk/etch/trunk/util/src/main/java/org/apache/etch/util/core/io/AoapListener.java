@@ -124,8 +124,6 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
 			appActivity.registerReceiver(usbReceiver, filter);			
 			
-			//usbHostDemon = new hostUSBDemonThread();
-			//usbHostDemon.start();
 			Intent startIntent = appActivity.getIntent();
 
 			/* Initialize */
@@ -186,6 +184,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	@SuppressWarnings("deprecation")
 	public void finalize()
 	{
+/*		
 		if(usbHostDemon != null)
 			usbHostDemon.stop();
 		
@@ -193,9 +192,10 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			hostAudioDemon.setAudioThreadState(false);
 			hostAudioDemon.stop();
 		}
-		
+*/		
 		if(usbReceiver != null && appActivity != null)
 			appActivity.unregisterReceiver (usbReceiver);
+
 	}
 
 	public BlockingQueue<ByteBuffer> allocReadQueue()
@@ -225,7 +225,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	
 	private boolean usbVidPidChecker(int vid, int pid)
 	{
-        Log.d(TAG, "VID PID Check Vid: " + vid + " Pid: " + pid);
+        // Log.d(TAG, "VID PID Check Vid: " + vid + " Pid: " + pid);
 		
 		if( pid == USB_PRODUCTID_ACCESSORY 
 		 || pid == USB_PRODUCTID_ACCESSORY_ADB
@@ -236,8 +236,8 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			return true;
 		}
 			
-		Log.d(TAG, "Device does not support Accessory mode");
-		return true;	
+		Log.d(TAG, "Not support Accessory mode yet " + vid + "/" + pid );
+		return false;	
 	}
 
 	/**
@@ -253,8 +253,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		UsbEndpoint tempEndpoint;
 
 		Log.d(TAG, "scanEndpoint");
-//		Toast.makeText(appActivity,  "scanEndpoint" , Toast.LENGTH_SHORT).show();
-		aoapToastMessage("scanEndpoint");
+		
 		usbInterface = null; //
 		
 		for (int idx=0; idx<infCount; idx++)
@@ -343,49 +342,39 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	private class hostUSBDemonThread extends Thread {
 		
 		public boolean isRunning = true;
-		private boolean isConnected = false;
+		private static final int LOOP_SLEEP_TIME = 200; // ms
+		private static final int MAX_LOOP_COUNT = 25; // 5 second
 		
 		public void run() {
 			while(isRunning) {
-				if(usbManager != null) {
-					
-					usbDevice = (UsbDevice) appActivity.getIntent().getParcelableExtra(UsbManager.EXTRA_DEVICE);
-					
-					if(usbDevice != null)
-					{
-						vendorID = usbDevice.getVendorId();
-						productID = usbDevice.getProductId();
-						Log.d(TAG, "Vendor ID: " + vendorID + " Product ID: " + productID);
-						aoapToastMessage("Vendor ID: " + vendorID + " Product ID: " + productID);
-					}					
-					
-/*					
-					if(setUsbDevice(appActivity.getIntent())) {
-						if(!isConnected) {
-							isConnected = true;
-                        	if(connectUsbDevice(usbManager, appActivity.getIntent())) {
-                        		startService();	                        	
-                        	}
-                        	aoapToastMessage("USB device Connected");
-                        	Log.d(TAG, "USB device Conneced in Thread");
-						}
-					} else {
-						if(isConnected)
+				usbDevice = null;
+				
+				for (int count =0; count < MAX_LOOP_COUNT ; count++)
+				{
+					if(usbManager != null) {
+						for(UsbDevice dev : usbManager.getDeviceList().values())
 						{
-							isConnected = false;
-							havePermission = USB_PERMISSION_NO ;
-							aoapToastMessage("USB device Disconnected");
-							Log.d(TAG, "USB device Disconneced in Thread");
-						}
+							if(usbVidPidChecker(dev.getVendorId(), dev.getProductId())) {
+								usbDevice = dev;
+								vendorID = dev.getVendorId();
+								productID = dev.getProductId();
+								usbConnectHandler.sendEmptyMessage(USB_CONNECT_HANDLER);
+								Log.d(TAG, "Found out Google Device : " +  dev.getVendorId() + "/" + dev.getProductId() );
+								return;
+							}
+						}					
 					}
-*/
+					
+					try {
+						sleep(LOOP_SLEEP_TIME);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 				}
 				
-				try {
-					sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+				Log.d(TAG, "Not found Google Device");
+				havePermission = USB_PERMISSION_NO; // New Connection Start
+				return;
 			}
 		}
 	}
@@ -416,7 +405,6 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 
 		if(usbDevice != null) {
 			Log.d(TAG, "Vendor ID: " + usbDevice.getVendorId() + " Product ID: " + usbDevice.getProductId());
-//			aoapToastMessage("Vendor ID: " + usbDevice.getVendorId() + " Product ID: " + usbDevice.getProductId());
 			return true;
 		}
 
@@ -424,7 +412,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		return false;
 	}
 	
-	private boolean connectUsbDevice(UsbManager um, Intent intent)
+	synchronized private boolean connectUsbDevice(UsbManager um, Intent intent)
 	{
 		Log.d(TAG, "Connecting USB device");
 	
@@ -432,21 +420,33 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		{
 			if(setUsbDevice(intent))
 			{
-				usbManager.requestPermission(usbDevice, permissionIntent);
-				havePermission = USB_PERMISSION_HAVE;
-				Log.d(TAG,"connectUsbDevice: Request Permission");
+				if(true) //!usbManager.hasPermission(usbDevice))
+				{
+					usbManager.requestPermission(usbDevice, permissionIntent);
+					havePermission = USB_PERMISSION_HAVE;
+					Log.d(TAG,"connectUsbDevice: Request Permission");
 				
-				Handler handle = new Handler();
-				handle.postDelayed(new Runnable() {
-					public void run () {
-						usbConnectHandler.sendEmptyMessage(USB_CONNECT_HANDLER);;
-					}
-				}, 2000); /* Adjust next */
-				
+					Handler handle = new Handler();
+					handle.postDelayed(new Runnable() {
+						public void run () {
+							usbConnectHandler.sendEmptyMessage(USB_CONNECT_HANDLER);;
+						}
+					}, 2000); /* Adjust next */
+				} else {
+					havePermission = USB_PERMISSION_HAVE;
+					Log.d(TAG,"connectUsbDevice: Already Permission have");
+					usbConnectHandler.sendEmptyMessage(USB_CONNECT_HANDLER);
+				}
 				return true;
 			}	
 		} else if (havePermission == USB_PERMISSION_HAVE) {			
-			// If this state is Google Mode 
+			/* During device permission or entering into accessory mode, vendorID and productID will be seen as 0 values */
+			if(vendorID == 0 && productID == 0) {
+				usbHostDemon = new hostUSBDemonThread();
+				usbHostDemon.start();
+				return true;
+			}			
+			// If this state is Google Mode 			
 			if(usbVidPidChecker(vendorID, productID)) {
 				if(scanEndpoint(usbDevice))
 				{
@@ -458,7 +458,9 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 				}
 			} else {
 				startAccessoryService();
-				havePermission = USB_PERMISSION_NO;
+				havePermission = USB_PERMISSION_NO; // For reconnection to Google Accessory Device. 
+				usbHostDemon = new hostUSBDemonThread();
+				usbHostDemon.start();				
 				return true;
 			}
 			
