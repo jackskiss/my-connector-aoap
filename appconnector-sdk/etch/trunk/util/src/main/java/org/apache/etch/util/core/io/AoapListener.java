@@ -136,9 +136,24 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			// For Audio Stream
 			audioStreamingInit();
 			
-			connectUsbDevice(usbManager, startIntent);
+			usbConnectHandler.sendEmptyMessage(USB_CONNECT_HANDLER);
 		}
 	}
+	
+	private final static int USB_CONNECT_HANDLER = 1;
+	
+	Handler usbConnectHandler = new Handler() {
+		public void handleMessage(Message msg) {
+			if(msg.what == USB_CONNECT_HANDLER )
+			{
+				if(usbManager != null)
+					connectUsbDevice(usbManager, appActivity.getIntent());
+			}
+		}
+		
+	};
+	
+	private final static int TOAST_MESSAGE = 1;
 	
 	Handler mToastHandler = new Handler() {
 		public void handleMessage(Message msg){
@@ -156,8 +171,6 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 		if(hostAudioDemon == null)
 			hostAudioDemon = new hostAudioDemonThread();
 	}
-	
-	private final static int TOAST_MESSAGE = 1;
 	
 	private void aoapToastMessage(String msg)
 	{
@@ -214,17 +227,16 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	{
         Log.d(TAG, "VID PID Check Vid: " + vid + " Pid: " + pid);
 		
-		if( pid != USB_PRODUCTID_ACCESSORY 
-		 || pid != USB_PRODUCTID_ACCESSORY_ADB
-		 || pid != USB_PRODUCTID_AUDIO
-		 || pid != USB_PRODUCTID_AUDIO_ADB
-		 || pid != USB_PRODUCTID_ACCESSORY_AUDIO
-		 || pid != USB_PRODUCTID_ACCESSORY_AUDIO_ADB ) {
-			
-			Log.d(TAG, "Device does not support Accessory mode");
-			return false;
+		if( pid == USB_PRODUCTID_ACCESSORY 
+		 || pid == USB_PRODUCTID_ACCESSORY_ADB
+		 || pid == USB_PRODUCTID_AUDIO
+		 || pid == USB_PRODUCTID_AUDIO_ADB
+		 || pid == USB_PRODUCTID_ACCESSORY_AUDIO
+		 || pid == USB_PRODUCTID_ACCESSORY_AUDIO_ADB ) {			
+			return true;
 		}
 			
+		Log.d(TAG, "Device does not support Accessory mode");
 		return true;	
 	}
 
@@ -381,6 +393,8 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 	private synchronized boolean setUsbDevice(Intent intent)
 	{
 		usbDevice = null;
+		vendorID = 0;
+		productID = 0;
 		
 		for(UsbDevice dev : usbManager.getDeviceList().values())
 		{
@@ -402,7 +416,7 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 
 		if(usbDevice != null) {
 			Log.d(TAG, "Vendor ID: " + usbDevice.getVendorId() + " Product ID: " + usbDevice.getProductId());
-			aoapToastMessage("Vendor ID: " + usbDevice.getVendorId() + " Product ID: " + usbDevice.getProductId());
+//			aoapToastMessage("Vendor ID: " + usbDevice.getVendorId() + " Product ID: " + usbDevice.getProductId());
 			return true;
 		}
 
@@ -419,8 +433,16 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 			if(setUsbDevice(intent))
 			{
 				usbManager.requestPermission(usbDevice, permissionIntent);
-				havePermission = USB_PERMISSION_PENDING;
+				havePermission = USB_PERMISSION_HAVE;
 				Log.d(TAG,"connectUsbDevice: Request Permission");
+				
+				Handler handle = new Handler();
+				handle.postDelayed(new Runnable() {
+					public void run () {
+						usbConnectHandler.sendEmptyMessage(USB_CONNECT_HANDLER);;
+					}
+				}, 2000); /* Adjust next */
+				
 				return true;
 			}	
 		} else if (havePermission == USB_PERMISSION_HAVE) {			
@@ -430,11 +452,14 @@ public class AoapListener extends Connection<SessionListener<UsbManager>>
 				{
 					// Audio Stream
 					hostAudioDemon.start();
+					Log.d(TAG, "Connection completed");
+					aoapToastMessage("Connection Completed");
 					return true;
 				}
 			} else {
 				startAccessoryService();
 				havePermission = USB_PERMISSION_NO;
+				return true;
 			}
 			
 		}
