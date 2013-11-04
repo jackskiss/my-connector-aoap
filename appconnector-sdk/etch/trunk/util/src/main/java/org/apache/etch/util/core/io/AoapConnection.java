@@ -52,7 +52,7 @@ public class AoapConnection extends Connection<SessionPacket> implements
     private BlockingQueue<ByteBuffer> sendQueues;
     
     private static final int SEND_QUEUE_SIZE = 100; // Fix: Need to adjust particular this
-	private static final int READ_BYTE_BUFFER_SIZE = 16384; // Fix: Need to adjust particular this
+	private static final int READ_BYTE_BUFFER_SIZE = 16*1024; // Fix: Need to adjust particular this
 	
 	private AoapPacketizer aoapPacket;
 	
@@ -67,9 +67,7 @@ public class AoapConnection extends Connection<SessionPacket> implements
 			Log.d(TAG, "Error: app or um is null");
 			return;
 		}
-		
-		aoapToastMessage("Activity Connection creator");
-		
+				
 		usbManager = um;
 		appActivity = app;	
 		this.listener = listener;
@@ -86,28 +84,55 @@ public class AoapConnection extends Connection<SessionPacket> implements
 			return;
 		}
 		
-		aoapToastMessage("Activity Connection creator");
-		
 		usbManager = um;
 		appActivity = app;	
 		
 		/* Initialize */
 		havePermission = USB_PERMISSION_NO;
 		sendQueues = new ArrayBlockingQueue<ByteBuffer>(SEND_QUEUE_SIZE);
-				
-		IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
-		appActivity.registerReceiver(usbReceiver, filter);
 		
-		if(setUSBDevice())
-			openAccessory(usbAccessory);
+		setUsbIntentFilter(appActivity);
 		
-		
-		usbPacketDemon = new usbPacketTransmitThread();
-		usbPacketDemon.start();
-		
+		setUSBDevice();
 	}
 
+/*	
+	private final static int USB_CONNECT_HANDLER = 1;
+	
+	Handler usbConnectHandler = new Handler() {
+		public void handleMessage(Message msg) {
+			if(msg.what == USB_CONNECT_HANDLER )
+			{
+				if(usbManager != null)
+					connectUsbDevice(usbManager, appActivity.getIntent());
+			}
+		}
+		
+	};
+*/
+	private void setUsbIntentFilter(Activity app)
+	{
+		/* To check access permission by application */	
+		actionUsbPermission = app.getPackageName() + ".USB_PERMISSION";
+		Intent startIntent = app.getIntent(); 
+
+		Log.d(TAG, "Accessory Intent Persmission: " + actionUsbPermission);
+		permissionIntent = PendingIntent.getBroadcast(app, 0, new Intent(actionUsbPermission), 0);
+		
+		IntentFilter filter = new IntentFilter(actionUsbPermission);
+		
+		//filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
+		
+		appActivity.registerReceiver(usbReceiver, filter);		
+	}
+	
+	@SuppressWarnings("deprecation")
+	public void finalize()
+	{	
+		if(usbReceiver != null && appActivity != null)
+			appActivity.unregisterReceiver (usbReceiver);
+	}
+	
 	Handler mToastHandler = new Handler() {
 		public void handleMessage(Message msg){
 			if(msg.what == TOAST_MESSAGE)
@@ -133,27 +158,29 @@ public class AoapConnection extends Connection<SessionPacket> implements
 	private boolean openAccessory(UsbAccessory accessory) {
         
     	Log.d(TAG, "openAccessory: " + accessory);
-    	aoapToastMessage("openAccessory: " + accessory);
+    	
         fileDescriptor = usbManager.openAccessory(accessory);
         
         if (fileDescriptor != null) {
         
         	FileDescriptor fd = fileDescriptor.getFileDescriptor();
+        	Log.d(TAG, "File Descriptor" + fd);
             inputStream = new FileInputStream(fd);
             outputStream = new FileOutputStream(fd);
- 
-            // Fix: Check if need to thread. 
-            // Thread thread = new Thread(null, this, "AoapConnection Thread");
-            // thread.start();
             
-            Log.d(TAG, "openAccessory succeeded");
-            aoapToastMessage("openAccessory: Connected");
-            return true;
-        } else {
-            Log.d(TAG, "openAccessory fail");
-            aoapToastMessage("openAccessory: Connection Fail");
-            return false;
-        }
+            if(inputStream != null && outputStream != null) {
+        		usbPacketDemon = new usbPacketTransmitThread();
+        		usbPacketDemon.start();
+        		Log.d(TAG, "openAccessory success");
+        		aoapToastMessage("openAccessory: Connected");
+        		return true;
+            }
+        } 
+
+        Log.d(TAG, "openAccessory fail");
+        aoapToastMessage("openAccessory: Connection Fail");
+
+        return false;
     }	
 	
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
@@ -214,22 +241,46 @@ public class AoapConnection extends Connection<SessionPacket> implements
 		}		
 	}
 
+	private boolean checkUsbAccessory()
+	{
+		
+		UsbAccessory[] accessoryList = usbManager.getAccessoryList();
+		
+		usbAccessory = null;
+		
+		for(UsbAccessory acc : accessoryList) {
+			Log.d(TAG, "Manufacturer: " + acc.getManufacturer() + " Model:" + acc.getModel());
+			if(acc.getModel().equals("VIT") && acc.getManufacturer().equals("HKMC")) {
+				usbAccessory = acc;
+				break;
+			}
+		}
+
+		if(usbAccessory == null) {
+			usbAccessory = (UsbAccessory) appActivity.getIntent().getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
+		}
+		
+		if(usbAccessory != null) {
+			Log.d(TAG, "Found out Manufacturer: " + usbAccessory.getManufacturer() + " Model:" + usbAccessory.getModel());
+			return true;
+		}
+		
+		return false;
+	}
+	
 	private boolean setUSBDevice()
 	{
 		
 		if(usbManager != null && appActivity != null && havePermission != USB_PERMISSION_HAVE)
 		{
-			/* Check access permission by application */
-			actionUsbPermission = appActivity.getPackageName() + ".USB_PERMISSION";
-			Intent startIntent = appActivity.getIntent(); 
-			usbAccessory = (UsbAccessory) startIntent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);	   
-			permissionIntent = PendingIntent.getBroadcast(appActivity, 0, new Intent(actionUsbPermission), 0);
-			
+			if(!checkUsbAccessory())
+				return false;
 			if(usbAccessory != null) {
 				if(!usbManager.hasPermission(usbAccessory))
-				{
+				{		
 					usbManager.requestPermission(usbAccessory, permissionIntent);
 					havePermission = USB_PERMISSION_PENDING;
+					Log.d(TAG, "Request permission");
 					return false;
 				}
 				return true;
@@ -307,7 +358,7 @@ public class AoapConnection extends Connection<SessionPacket> implements
 
 		ByteBuffer srcBuffer = ByteBuffer.allocate(READ_BYTE_BUFFER_SIZE);		
 
-		ret = inputStream.read(srcBuffer.array());
+		ret = inputStream.read(srcBuffer.array(),  0,  READ_BYTE_BUFFER_SIZE); 
 	
 		Log.d(TAG,"Received Packet" + ret);
 		
