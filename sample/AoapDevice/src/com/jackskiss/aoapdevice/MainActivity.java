@@ -47,6 +47,7 @@ public class MainActivity extends Activity implements Runnable {
     private EditText txtSendBox;
     private EditText txtReceiveBox;
     
+    private boolean isConnected = false;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +62,13 @@ public class MainActivity extends Activity implements Runnable {
 
 		permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(strPermission), 0);
 		IntentFilter filter = new IntentFilter(strPermission);
+		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
 		
+		registerReceiver(usbReceiver, filter);
+		
+		checkAccessoryConnection checkAccessory = new checkAccessoryConnection();
+		checkAccessory.start();
+
 		Button buttonSend = (Button)findViewById(R.id.btnSend);		
 		buttonSend.setOnClickListener(new View.OnClickListener() {
 			
@@ -76,25 +83,118 @@ public class MainActivity extends Activity implements Runnable {
 						e.printStackTrace();
 					}
 				}
-			}
+			}		
 		});
+
+		Button buttonConnect = (Button)findViewById(R.id.connect);		
+		buttonConnect.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if ( getAccessory()) {
+					if(!isConnected) {
+						Log.d(TAG, "Request Permission");
+						//UsbAccessory accessory = (UsbAccessory) getIntent().getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
+					    UsbAccessory[] accessories = usbManager.getAccessoryList();
+					    UsbAccessory accessory = (accessories == null ? null : accessories[0]);
+						usbManager.requestPermission(accessory, permissionIntent);
+						permissionRequestPending = true;
+					}
+				} 
+			}		
+		});
+		
+	}
+	
+	
+	private class checkAccessoryConnection extends Thread {
+		private boolean isChecking = true;
+		
+		public void run() {
+			while(isChecking) 
+			{
+				if(!permissionRequestPending)
+				{
+					if ( getAccessory()) {
+						if(!isConnected) {
+							Log.d(TAG, "Request Permission");
+							UsbAccessory[] accessories = usbManager.getAccessoryList();
+						    UsbAccessory accessory = (accessories == null ? null : accessories[0]);
+							//UsbAccessory accessory = (UsbAccessory) getIntent().getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
+							usbManager.requestPermission(accessory, permissionIntent);
+							permissionRequestPending = true;
+						}
+					} else {
+						isConnected = false;
+					    Log.d(TAG, "Accessory is not detected");
+					}
+				}
+				
+				try {
+					sleep(500);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	private boolean getAccessory() {
+		UsbAccessory[] accessoryList = usbManager.getAccessoryList();
+		
+		UsbAccessory usbAccessory = null;
+		if(accessoryList == null) {
+			Log.d(TAG, "Accessory List is NULL");
+			return false;
+		}
+			
+		for(UsbAccessory acc : accessoryList) {
+			Log.d(TAG, "Manufacturer: " + acc.getManufacturer() + " Model:" + acc.getModel());
+			if(acc.getModel().equals("VIT") && acc.getManufacturer().equals("HKMC")) {
+				usbAccessory = acc;
+				break;
+			}
+		}
+		if (usbAccessory != null) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-	        if (strPermission.equals(intent.getAction())) {
+        	String action = intent.getAction();
+        	Log.d(TAG, "Received action: " + action );
+	        if (strPermission.equals(action)) {
 	            synchronized (this) {
 	            	UsbAccessory accessory = (UsbAccessory) intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
 		            if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
 			              if (accessory != null) {
 			                   openAccessory(accessory);
+			                   
 			              }
 	                } else {
 			              Log.d(TAG, "permission denied for accessory " + accessory);
 			        }
+		            
 		            permissionRequestPending = false;
 	            }
+	        } else if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) {
+	        	
+	        	try {
+					inputStream.close();
+					outputStream.close();
+					fileDescriptor.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	        	isConnected = false;
+	        	permissionRequestPending = false;
+	        	
 	        }
         }
 	};	
@@ -108,6 +208,7 @@ public class MainActivity extends Activity implements Runnable {
             outputStream = new FileOutputStream(fd);
             Thread thread = new Thread(null, this, "AccessoryChat");
             thread.start();
+            isConnected = true;
             Log.d(TAG, "openAccessory succeeded");
             Toast.makeText(getApplicationContext(), "Accessory Connected", Toast.LENGTH_SHORT).show();
         } else {
