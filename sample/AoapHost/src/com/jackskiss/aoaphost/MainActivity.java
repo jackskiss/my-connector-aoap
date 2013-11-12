@@ -76,6 +76,8 @@ public class MainActivity extends Activity implements Runnable {
 		
 		usbDevice = getIntent().getParcelableExtra(UsbManager.EXTRA_DEVICE);
 		
+		checkDeviceConnection checkDevice = new checkDeviceConnection();
+		checkDevice.start();
 		permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(strPermission), 0);
 		
 		IntentFilter filter = new IntentFilter(strPermission);
@@ -103,14 +105,50 @@ public class MainActivity extends Activity implements Runnable {
 		
 	}
 	
+	public static class UsbIds {
+		final static int SAMSUNG_VID = 1256;
+		final static int LG_VID = 4100;
+		final static int[] SAMSUNG_PID = { 26715, 26716, 26717, 26718, 26720, 26725, 26726 };
+		final static int[] LG_PID = {25036, 25073, 25084, 25086, 25344, 25372, 25374, 25430};
+	}
+	
+	private class checkDeviceConnection extends Thread {
+		private boolean isChecking  = true;
+		
+		public void run() {
+			
+			while(isChecking)
+			{
+				if(!permissionRequestPending)
+				{
+					for(UsbDevice dev : usbManager.getDeviceList().values())
+					{
+						if((dev.getVendorId() == UsbIds.LG_VID) || (dev.getVendorId() == UsbIds.SAMSUNG_VID)) {
+							usbManager.requestPermission(dev, permissionIntent);
+							usbDevice = dev;
+							permissionRequestPending = true;
+							break;
+						}
+					}						
+				}
+				
+				try {
+					sleep(1000);
+				} catch (Exception e) {
+					// Error
+				}
+			}
+		}
+	}
+	
 	BroadcastReceiver usbReceiver = new BroadcastReceiver() {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			// TODO Auto-generated method stub
 			Log.d(TAG, "Received intent : " + intent.getAction());
-			
-			if (strPermission.equals(intent.getAction())) {
+			String action = intent.getAction();
+			if (strPermission.equals(action)) {
 				if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
 	                synchronized (this) {	                    
 	                	if (usbDevice != null)
@@ -136,10 +174,10 @@ public class MainActivity extends Activity implements Runnable {
 	             }
 				 else 
                      Log.d(TAG, "permission denied for Hostmode ");				
-            } else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
+            } else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
             	usbAccessoryAttach();
             	
-            } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(intent.getAction())) {
+            } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
             	 // Fix: Close USB connection 
 				usbDeviceConnection.releaseInterface(usbInterface);
 				usbDeviceConnection.close();
@@ -168,9 +206,9 @@ public class MainActivity extends Activity implements Runnable {
 	@Override
 	protected void onResume() {		
 		
-		Log.d(TAG, "onResume");
+//		Log.d(TAG, "onResume");
 		
-		usbAccessoryAttach();
+//		usbAccessoryAttach();
 		
 		super.onResume();
 	}
@@ -263,6 +301,7 @@ public class MainActivity extends Activity implements Runnable {
 	
 	private boolean openUsbAsAccessory()
 	{
+		Log.d(TAG, "openUsbAsAccessory");
 		byte[] protocol = new byte[2];
 		
 		usbInterface = usbDevice.getInterface(0); // Default to 0
